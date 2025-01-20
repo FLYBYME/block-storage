@@ -1,0 +1,21 @@
+version: "3.3"
+
+services:
+
+
+  greeter:
+    build:
+      context: .
+    image: block-storage
+    env_file: docker-compose.env
+    environment:
+      SERVICES: greeter
+    networks:
+      - internal
+
+
+networks:
+  internal:
+
+volumes:
+  data:

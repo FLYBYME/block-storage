@@ -1,0 +1,4 @@
+{"name":"ca","description":"Canadian zone provided by OVH","status":"active","provider":"ovh","createdAt":1736649504014,"location":{"country":"Canada","region":"Beauharnois"},"_id":"WZp5O2g7OpnFfnEC"}
+{"name":"usa","description":"Chicago zone provided by TNA","status":"active","provider":"tna","createdAt":1736649504028,"location":{"country":"USA","region":"Chicago"},"_id":"WwGQnk4TlKLnk5S6"}
+{"name":"syd","description":"Sydney zone provided by OVH","status":"active","provider":"ovh","createdAt":1736649504034,"location":{"country":"Australia","region":"Sydney"},"_id":"i3SBzymiFT5RNIDA"}
+{"name":"uk","description":"London zone provided by OVH","status":"active","provider":"ovh","createdAt":1736649504044,"location":{"country":"UK","region":"London"},"_id":"xFSZm3sUXxON3QdA"}
