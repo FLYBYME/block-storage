@@ -13,6 +13,13 @@ Key features include:
 - **Block Storage Management**: Provision, format, mount, and manage block storage devices with support for replicas and snapshots.
 - **Configuration Management**: Centralized configuration for clusters, namespaces, and other parameters.
 
+### Requirements
+
+- [Moleculer](https://moleculer.services)
+- [Kubernetes](https://kubernetes.io)
+- [Config-service](https://github.com/FLYBYME/config-service)
+- [Nodes-service](https://github.com/FLYBYME/nodes-service)
+
 ## Services
 
 ### NFS Service
@@ -128,7 +135,7 @@ The services use configuration settings defined in the `config` object within ea
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/block-storage.git
+   git clone https://github.com/FLYBYME/block-storage.git
    cd block-storage
    ```
 
