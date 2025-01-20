@@ -21,6 +21,27 @@ These services require the following services to be running:
 - [Config-service](https://github.com/FLYBYME/config-service)
 - [Nodes-service](https://github.com/FLYBYME/nodes-service)
 
+
+## Index
+
+- [NFS Service](#nfs-service)
+  - Actions: `createNFS`, `createPod`, `deletePod`, `getPod`
+  - Methods: `resolveNFS`, `resolveNFSPod`, `createNFS`, `createNFSPod`, `deleteNFSPod`
+- [Folders Service](#folders-service)
+  - Actions: `provision`, `deprovision`, `updateUsed`, `updateAllUsed`
+  - Methods: `findByID`, `provisionFolder`, `deprovisionFolder`, `getUsed`
+- [Disks Service](#disks-service)
+  - Actions: `availableDisks`, `probe`, `probeAll`, `updateUsed`, `updateAllUsed`, `mountPoint`, `setNFS`, `createFolder`, `removeFolder`, `getFolderSize`, `nfs`, `getNodeDisks`
+  - Methods: `resolveStorageDevice`, `findBySerial`, `createFolder`, `removeFolder`, `getFolderSize`, `probeNodeStorage`, `sizeToMB`, `processChildren`, `parseDevice`, `updateUsed`, `format`, `mount`, `unmount`
+- [Blocks Service](#blocks-service)
+  - Provisioning: `provision`, `deprovision`
+  - Formatting and Mounting: `format`, `mount`, `unmount`
+  - Usage and Maintenance: `usage`, `trim`, `checkPods`, `balanceBlock`
+  - Replica Management: `createReplica`, `removeReplicaFromBlock`, `removeReplicaFromFrontend`, `removeReplicaPod`, `addReplicaToFrontend`, `listReplicas`, `updateReplica`, `getRebuildStatus`, `verifyRebuild`, `updateReplicaMode`
+  - Information and Control: `ls`, `info`
+  - Longhorn Block Controller: `createBlockController`, `startBlockFrontend`, `shutdownBlockFrontend`, `getBlockControllerInfo`, `expandBlockController`, `deleteBlockController`
+
+
 ## Services
 
 ### NFS Service
