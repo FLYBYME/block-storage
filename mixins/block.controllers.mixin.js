@@ -310,19 +310,15 @@ module.exports = {
                 command.push("--replica");
                 command.push(replica.endpoint);
             }
-
             if (options.upgrade) {
                 command.push("--upgrade");
             }
-
             if (options.disableRevCounter) {
                 command.push("--disableRevCounter");
             }
-
             if (options.salvageRequested) {
                 command.push("--salvageRequested");
             }
-
             if (options.unmapMarkSnapChainRemoved) {
                 command.push("--unmap-mark-snap-chain-removed");
             }
