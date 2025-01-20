@@ -76,39 +76,6 @@ module.exports = {
         },
 
         /**
-         * start frontend
-         * 
-         * @actions
-         * @param {String} id - block storage id
-         * 
-         * @returns {Object} - updated block storage object
-         */
-        startFrontend: {
-            rest: {
-                method: "POST",
-                path: "/:id/start-frontend"
-            },
-            params: {
-                id: {
-                    type: "string",
-                    empty: false,
-                    optional: false
-                }
-            },
-            async handler(ctx) {
-                const block = await this.findById(ctx, ctx.params.id);
-                if (!block) {
-                    throw new MoleculerClientError(
-                        `Block storage with id '${ctx.params.id}' not found`,
-                        404, "NOT_FOUND", { id: ctx.params.id }
-                    );
-                }
-
-                return this.startFrontend(ctx, block);
-            }
-        },
-
-        /**
          * add replica to frontend
          * 
          * @actions
@@ -277,81 +244,6 @@ module.exports = {
 
     methods: {
 
-        /**
-         * start frontend
-         * 
-         * @param {Context} ctx - context of the request
-         * @param {Object} block - block storage object
-         * @param {Object} pod - pod object
-         * 
-         * @returns {Object} - updated block storage object
-         */
-        async startFrontend(ctx, block) {
-            // start frontend
-            const result = await this.exec(ctx, block, [
-                "longhorn",
-                "frontend",
-                "start",
-                this.config.get("storage.blocks.frontend")
-            ]);
-
-            const info = await this.info(ctx, block);
-
-            // update block storage object
-            const updated = await this.updateEntity(ctx, {
-                id: block.id,
-                frontendState: info.frontendState === "up",
-                device: info.endpoint
-            }, { permissive: true });
-
-            this.logger.info(`Block storage ${block.id} online`);
-
-            return updated;
-        },
-
-        /**
-         * shutdown frontend
-         * 
-         * @param {Context} ctx - context of the request
-         * @param {Object} block - the block to shutdown the frontend on
-         * 
-         * @returns {Promise<Object>} - returns the command output
-         */
-        async shutdownFrontend(ctx, block) {
-
-            if (!block.online) {
-                throw new MoleculerClientError(
-                    `Block storage ${block.id} is already offline`,
-                    500, "BLOCK_OFFLINE", { id: block.id }
-                );
-            }
-
-            if (block.mounted) {
-                throw new MoleculerClientError(
-                    `Block storage ${block.id} is still mounted`,
-                    500, "BLOCK_MOUNTED", { id: block.id }
-                );
-            }
-
-            const cmd = [
-                "longhorn",
-                "frontend",
-                "shutdown"
-            ];
-
-            const result = await this.exec(ctx, block, cmd);
-
-            // update block storage object
-            const updated = await this.updateEntity(ctx, {
-                id: block.id,
-                frontendState: false,
-                device: null
-            }, { permissive: true });
-
-            this.logger.info(`Block storage ${block.id} offline`);
-
-            return updated;
-        },
 
         /**
          * longhorn info command
