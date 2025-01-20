@@ -673,7 +673,7 @@ module.exports = {
 
 					// add all replicas to the block
 					for (let replica of updated.replicas) {
-						const result = await this.addReplica(ctx, updated, replica);
+						const result = await this.addReplicaToFrontend(ctx, updated, replica);
 						this.logger.info(`Replica ${replica.id} added to block ${block.id}`);
 					}
 
@@ -719,12 +719,12 @@ module.exports = {
 
 				this.logger.info(`Replica ${replica.id} is healthy`);
 
-				await this.addReplica(ctx, block, replica);
+				await this.addReplicaToFrontend(ctx, block, replica);
 
 				await this.updateFrontendState(ctx, block);
 			} else if (pod.status.phase == "Terminating" && replica.healthy) {
 
-				await this.removeReplica(ctx, block, replica)
+				await this.removeReplicaFromFrontend(ctx, block, replica)
 					.catch((err) => {
 						this.logger.error(`Failed to remove replica ${replica.id} from block ${block.id}: ${err.message}`);
 					});
@@ -872,7 +872,7 @@ module.exports = {
 				// If the pod is not found
 				if (!pod) {
 					// Remove the replica from the block
-					await this.removeReplica(ctx, block, replica)
+					await this.removeReplicaFromFrontend(ctx, block, replica)
 						.catch((err) => {
 							this.logger.error(`Failed to remove replica ${replica.id} from block ${block.id}: ${err.message}`);
 						});
@@ -895,7 +895,7 @@ module.exports = {
 				} else if (pod.status.phase != "Running") {
 					// If the pod is not running
 					// Remove the replica from the block
-					await this.removeReplica(ctx, block, replica)
+					await this.removeReplicaFromFrontend(ctx, block, replica)
 						.catch((err) => {
 							this.logger.error(`Failed to remove replica ${replica.id} from block ${block.id}: ${err.message}`);
 						});
@@ -918,7 +918,7 @@ module.exports = {
 					this.logger.warn(`Replica ${replica.id} is unhealthy`);
 
 					// Try to add the replica back to the block
-					await this.addReplica(ctx, block, replica)
+					await this.addReplicaToFrontend(ctx, block, replica)
 						.catch((err) => {
 							this.logger.error(`Failed to add replica ${replica.id} to block ${block.id}: ${err.message}`);
 						});
@@ -940,7 +940,7 @@ module.exports = {
 					this.logger.info(`Replica ${replica.id} is healthy`);
 
 					// Try to add the replica back to the block
-					await this.addReplica(ctx, block, replica)
+					await this.addReplicaToFrontend(ctx, block, replica)
 						.catch((err) => {
 							this.logger.error(`Failed to add replica ${replica.id} to block ${block.id}: ${err.message}`);
 						});

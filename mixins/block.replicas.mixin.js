@@ -173,7 +173,7 @@ module.exports = {
         },
 
         /**
-         * Add a replica to a volume
+         * Add a replica to a volume frontend
          * 
          * @actions
          * @param {String} id - block storage id
@@ -184,7 +184,7 @@ module.exports = {
          * 
          * @returns {Object} - result from the command
          */
-        addReplica: {
+        addReplicaToFrontend: {
             rest: {
                 method: "POST",
                 path: "/:id/replicas/add"
@@ -230,7 +230,7 @@ module.exports = {
                     );
                 }
 
-                return this.addReplica(ctx, block, replica, {
+                return this.addReplicaToFrontend(ctx, block, replica, {
                     restore: ctx.params.restore,
                     fastSync: ctx.params.fastSync,
                     fileSyncHttpClientTimeout: ctx.params.fileSyncHttpClientTimeout
@@ -272,7 +272,7 @@ module.exports = {
         },
 
         /**
-         * Remove a replica from a block
+         * Remove a replica from a block frontend
          * 
          * @actions
          * @param {String} id - block storage id
@@ -280,7 +280,7 @@ module.exports = {
          * 
          * @returns {Object} - result from the command
          */
-        removeReplica: {
+        removeReplicaFromFrontend: {
             rest: {
                 method: "DELETE",
                 path: "/:id/replicas/:replica"
@@ -327,7 +327,7 @@ module.exports = {
                     );
                 }
 
-                return this.removeReplica(ctx, block, replica);
+                return this.removeReplicaFromFrontend(ctx, block, replica);
             }
         },
 
@@ -638,7 +638,7 @@ module.exports = {
         },
 
         async removeReplicaPod(ctx, block, replica) {
-            const updated = await this.removeReplica(ctx, block, replica);
+            const updated = await this.removeReplicaFromFrontend(ctx, block, replica);
 
             await ctx.call("v1.kubernetes.deleteNamespacedPod", {
                 cluster: block.cluster,
@@ -660,7 +660,7 @@ module.exports = {
          */
         async removeReplicaFromBlock(ctx, block, replica) {
 
-            let updated = await this.removeReplica(ctx, block, replica)
+            let updated = await this.removeReplicaFromFrontend(ctx, block, replica)
                 .catch(() => {
                     this.logger.error(`Failed to remove replica ${replica.id} from block ${block.id}`);
                 });
@@ -698,7 +698,7 @@ module.exports = {
          * 
          * @returns {Promise<Object>} - Replica object
          */
-        async addReplica(ctx, block, replica, options = {}) {
+        async addReplicaToFrontend(ctx, block, replica, options = {}) {
             if (!replica.healthy) {
                 this.logger.info(`Block storage ${block.id} replica pod ${replica.id} is not healthy`);
                 return;
@@ -807,7 +807,7 @@ module.exports = {
          * 
          * @returns {Promise<Object>} - Replica object
          */
-        async removeReplica(ctx, block, replica) {
+        async removeReplicaFromFrontend(ctx, block, replica) {
 
             if (!replica.endpoint) {
                 throw new MoleculerClientError(
