@@ -17,7 +17,7 @@ Key features include:
 
 ### NFS Service
 
-Manages NFS servers.
+Manages NFS servers. NFS servers are used to provide shared storage for storage folders.
 
 #### Actions
 
@@ -36,7 +36,7 @@ Manages NFS servers.
 
 ### Folders Service
 
-Manages storage folders.
+Manages storage folders. Folders are used as mount points for the block devices and storage for replicas.
 
 #### Actions
 
@@ -96,7 +96,6 @@ Manages block storage devices.
 - `verifyRebuild`: Verifies the rebuild status of a replica of a block storage device.
 - `ls`: Lists the contents of a block storage device.
 - `info`: Retrieves information about a block storage device.
-- `startFrontend`: Starts the frontend of a block storage device.
 - `addReplicaToFrontend`: Adds a replica to the frontend of a block storage device.
 - `removeReplicaPod`: Removes a replica pod from a block storage device.
 - `updateReplicaMode`: Updates the mode of a replica of a block storage device.
