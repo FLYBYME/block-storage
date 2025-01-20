@@ -75,30 +75,44 @@ Manages storage disks.
 
 Manages block storage devices.
 
-#### Actions
+#### Provisioning
 
 - `provision`: Provisions a new block storage device.
 - `deprovision`: Deprovisions an existing block storage device.
+
+#### Formatting and Mounting
+
 - `format`: Formats a block storage device.
 - `mount`: Mounts a block storage device.
 - `unmount`: Unmounts a block storage device.
+
+#### Usage and Maintenance
+
 - `usage`: Retrieves the usage of a block storage device.
 - `trim`: Trims a block storage device.
 - `checkPods`: Checks the state of the pods associated with a block storage device.
 - `balanceBlock`: Balances the number of replicas of a block storage device.
+
+#### Replica Management
+
 - `createReplica`: Creates a new replica for a block storage device.
 - `removeReplicaFromBlock`: Removes a replica from a block storage device.
-- `addReplica`: Adds a replica to a block storage device.
+- `removeReplicaFromFrontend`: Removes a replica from a block storage device.
+- `removeReplicaPod`: Removes a replica pod from a block storage device.
+- `addReplicaToFrontend`: Adds a replica to a block storage device.
 - `listReplicas`: Lists replicas of a block storage device.
-- `removeReplica`: Removes a replica from a block storage device.
 - `updateReplica`: Updates a replica of a block storage device.
 - `getRebuildStatus`: Gets the rebuild status of a replica of a block storage device.
 - `verifyRebuild`: Verifies the rebuild status of a replica of a block storage device.
+- `updateReplicaMode`: Updates the mode of a replica of a block storage device.
+
+#### Information and Control
+
 - `ls`: Lists the contents of a block storage device.
 - `info`: Retrieves information about a block storage device.
-- `addReplicaToFrontend`: Adds a replica to the frontend of a block storage device.
-- `removeReplicaPod`: Removes a replica pod from a block storage device.
-- `updateReplicaMode`: Updates the mode of a replica of a block storage device.
+
+#### Longhorn Block Controller
+
 - `createBlockController`: Creates a Longhorn block controller.
 - `startBlockFrontend`: Starts a Longhorn block controller.
 - `shutdownBlockFrontend`: Shuts down a Longhorn block controller.
