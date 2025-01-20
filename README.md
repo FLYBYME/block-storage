@@ -7,7 +7,7 @@
 block-storage is a microservice-based storage management system built using the Moleculer framework. It provides functionalities to manage NFS servers, folders, disks, and block storage devices. The system is designed to be highly scalable and flexible, allowing for easy integration with various storage backends and orchestration platforms like Kubernetes. Currently only Kubernetes is supported.
 
 Key features include:
-- **NFS Management**: Provision and manage NFS servers for shared storage.
+- **NFS Management**: Provision and manage NFS servers for shared v1.storage.
 - **Folder Management**: Create, update, and delete storage folders on disks.
 - **Disk Management**: Probe, format, mount, and manage storage disks.
 - **Block Storage Management**: Provision, format, mount, and manage block storage devices with support for replicas and snapshots.
@@ -67,17 +67,160 @@ Manages storage disks.
 #### Actions
 
 - `availableDisks`: Retrieves available disks.
+  - **Params**:
+    - `cluster` (string): Cluster name.
+    - `size` (number): Size in MB that should be available on the disk.
+    - `limit` (number, optional): Limit number of disks to return.
+    - `exclude` (array, optional): Array of disk IDs to exclude.
+  - **Example**:
+    ```javascript
+    const disks = await broker.call("v1.storage.disks.availableDisks", {
+      cluster: "cluster-1",
+      size: 1024,
+      limit: 5,
+      exclude: ["disk-1", "disk-2"]
+    });
+    console.log(disks);
+    ```
+
 - `probe`: Probes a node for storage devices.
+  - **Params**:
+    - `node` (string): Node ID.
+  - **Example**:
+    ```javascript
+    const devices = await broker.call("v1.storage.disks.probe", {
+      node: "node-1"
+    });
+    console.log(devices);
+    ```
+
 - `probeAll`: Probes all nodes for storage devices.
+  - **Example**:
+    ```javascript
+    const devices = await broker.call("v1.storage.disks.probeAll");
+    console.log(devices);
+    ```
+
 - `updateUsed`: Updates the used size of a disk.
+  - **Params**:
+    - `id` (string): Disk ID.
+  - **Example**:
+    ```javascript
+    const updatedDisk = await broker.call("v1.storage.disks.updateUsed", {
+      id: "disk-1"
+    });
+    console.log(updatedDisk);
+    ```
+
 - `updateAllUsed`: Updates the used size of all disks.
+  - **Example**:
+    ```javascript
+    const updatedDisks = await broker.call("v1.storage.disks.updateAllUsed");
+    console.log(updatedDisks);
+    ```
+
 - `mountPoint`: Retrieves the mount point of a disk.
+  - **Params**:
+    - `id` (string): Disk ID.
+  - **Example**:
+    ```javascript
+    const mountPoint = await broker.call("v1.storage.disks.mountPoint", {
+      id: "disk-1"
+    });
+    console.log(mountPoint);
+    ```
+
 - `setNFS`: Sets the NFS server for a disk.
+  - **Params**:
+    - `id` (string): Disk ID.
+    - `nfs` (string): NFS server ID.
+  - **Example**:
+    ```javascript
+    const updatedDisk = await broker.call("v1.storage.disks.setNFS", {
+      id: "disk-1",
+      nfs: "nfs-1"
+    });
+    console.log(updatedDisk);
+    ```
+
+- `createFolder`: Creates a folder on a disk.
+  - **Params**:
+    - `id` (string): Disk ID.
+    - `path` (string): Folder path.
+  - **Example**:
+    ```javascript
+    const folder = await broker.call("v1.storage.disks.createFolder", {
+      id: "disk-1",
+      path: "/data"
+    });
+    console.log(folder);
+    ```
+
+- `removeFolder`: Removes a folder from a disk.
+  - **Params**:
+    - `id` (string): Disk ID.
+    - `path` (string): Folder path.
+  - **Example**:
+    ```javascript
+    const folder = await broker.call("v1.storage.disks.removeFolder", {
+      id: "disk-1",
+      path: "/data"
+    });
+    console.log(folder);
+    ```
+
+- `getFolderSize`: Retrieves the size of a folder.
+  - **Params**:
+    - `id` (string): Disk ID.
+    - `path` (string): Folder path.
+  - **Example**:
+    ```javascript
+    const size = await broker.call("v1.storage.disks.getFolderSize", {
+      id: "disk-1",
+      path: "/data"
+    });
+    console.log(size);
+    ```
+
+- `nfs`: Resolves the NFS server for a folder on a disk.
+  - **Params**:
+    - `id` (string): Disk ID.
+    - `path` (string): Folder path.
+  - **Example**:
+    ```javascript
+    const nfs = await broker.call("v1.storage.disks.nfs", {
+      id: "disk-1",
+      path: "/data"
+    });
+    console.log(nfs);
+    ```
+
+- `getNodeDisks`: Retrieves disks for a specific node.
+  - **Params**:
+    - `node` (string): Node ID.
+  - **Example**:
+    ```javascript
+    const disks = await broker.call("v1.storage.disks.getNodeDisks", {
+      node: "node-1"
+    });
+    console.log(disks);
+    ```
+
+#### Methods
+
+- `resolveStorageDevice`: Resolves a storage device by its ID.
+- `findBySerial`: Finds disks by serial number.
 - `createFolder`: Creates a folder on a disk.
 - `removeFolder`: Removes a folder from a disk.
-- `getFolderSize`: Retrieves the size of a folder.
-- `nfs`: Resolves the NFS server for a folder on a disk.
-- `getNodeDisks`: Retrieves disks for a specific node.
+- `getFolderSize`: Gets the size of a folder.
+- `probeNodeStorage`: Probes a node for storage devices.
+- `sizeToMB`: Converts size string to MB.
+- `processChildren`: Processes child devices.
+- `parseDevice`: Parses a device from the lsblk output.
+- `updateUsed`: Updates the used size of a disk.
+- `format`: Formats a disk.
+- `mount`: Mounts a disk.
+- `unmount`: Unmounts a disk.
 
 ### Blocks Service
 
@@ -93,7 +236,7 @@ Manages block storage devices.
     - `replicas` (number): Number of replicas.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.provision", {
+    await broker.call("v1.storage.blocks.provision", {
       name: "my-block",
       size: 10,
       node: "node-1",
@@ -106,7 +249,7 @@ Manages block storage devices.
     - `id` (string): ID of the block.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.deprovision", {
+    await broker.call("v1.storage.blocks.deprovision", {
       id: "block-id"
     });
     ```
@@ -119,7 +262,7 @@ Manages block storage devices.
     - `force` (boolean, optional): Force format.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.format", {
+    await broker.call("v1.storage.blocks.format", {
       id: "block-id",
       force: true
     });
@@ -131,7 +274,7 @@ Manages block storage devices.
     - `force` (boolean, optional): Force mount.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.mount", {
+    await broker.call("v1.storage.blocks.mount", {
       id: "block-id",
       force: true
     });
@@ -143,7 +286,7 @@ Manages block storage devices.
     - `force` (boolean, optional): Force unmount.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.unmount", {
+    await broker.call("v1.storage.blocks.unmount", {
       id: "block-id",
       force: true
     });
@@ -156,7 +299,7 @@ Manages block storage devices.
     - `id` (string): ID of the block.
   - **Example**:
     ```javascript
-    const usage = await broker.call("storage.blocks.usage", {
+    const usage = await broker.call("v1.storage.blocks.usage", {
       id: "block-id"
     });
     console.log(usage);
@@ -167,7 +310,7 @@ Manages block storage devices.
     - `id` (string): ID of the block.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.trim", {
+    await broker.call("v1.storage.blocks.trim", {
       id: "block-id"
     });
     ```
@@ -177,7 +320,7 @@ Manages block storage devices.
     - `id` (string): ID of the block.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.checkPods", {
+    await broker.call("v1.storage.blocks.checkPods", {
       id: "block-id"
     });
     ```
@@ -187,7 +330,7 @@ Manages block storage devices.
     - `id` (string): ID of the block.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.balanceBlock", {
+    await broker.call("v1.storage.blocks.balanceBlock", {
       id: "block-id"
     });
     ```
@@ -200,7 +343,7 @@ Manages block storage devices.
     - `disk` (string): Disk ID.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.createReplica", {
+    await broker.call("v1.storage.blocks.createReplica", {
       id: "block-id",
       disk: "disk-id"
     });
@@ -212,7 +355,7 @@ Manages block storage devices.
     - `replica` (string): Replica ID.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.removeReplicaFromBlock", {
+    await broker.call("v1.storage.blocks.removeReplicaFromBlock", {
       id: "block-id",
       replica: "replica-id"
     });
@@ -224,7 +367,7 @@ Manages block storage devices.
     - `replica` (string): Replica ID.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.removeReplicaFromFrontend", {
+    await broker.call("v1.storage.blocks.removeReplicaFromFrontend", {
       id: "block-id",
       replica: "replica-id"
     });
@@ -236,7 +379,7 @@ Manages block storage devices.
     - `replica` (string): Replica ID.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.removeReplicaPod", {
+    await broker.call("v1.storage.blocks.removeReplicaPod", {
       id: "block-id",
       replica: "replica-id"
     });
@@ -248,7 +391,7 @@ Manages block storage devices.
     - `replica` (string): Replica ID.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.addReplicaToFrontend", {
+    await broker.call("v1.storage.blocks.addReplicaToFrontend", {
       id: "block-id",
       replica: "replica-id"
     });
@@ -259,7 +402,7 @@ Manages block storage devices.
     - `id` (string): ID of the block.
   - **Example**:
     ```javascript
-    const replicas = await broker.call("storage.blocks.listReplicas", {
+    const replicas = await broker.call("v1.storage.blocks.listReplicas", {
       id: "block-id"
     });
     console.log(replicas);
@@ -272,7 +415,7 @@ Manages block storage devices.
     - `mode` (string): Replica mode.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.updateReplica", {
+    await broker.call("v1.storage.blocks.updateReplica", {
       id: "block-id",
       replica: "replica-id",
       mode: "RW"
@@ -285,7 +428,7 @@ Manages block storage devices.
     - `replica` (string): Replica ID.
   - **Example**:
     ```javascript
-    const status = await broker.call("storage.blocks.getRebuildStatus", {
+    const status = await broker.call("v1.storage.blocks.getRebuildStatus", {
       id: "block-id",
       replica: "replica-id"
     });
@@ -298,7 +441,7 @@ Manages block storage devices.
     - `replica` (string): Replica ID.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.verifyRebuild", {
+    await broker.call("v1.storage.blocks.verifyRebuild", {
       id: "block-id",
       replica: "replica-id"
     });
@@ -310,7 +453,7 @@ Manages block storage devices.
     - `mode` (string): Replica mode.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.updateReplicaMode", {
+    await broker.call("v1.storage.blocks.updateReplicaMode", {
       id: "block-id",
       mode: "RW"
     });
@@ -323,7 +466,7 @@ Manages block storage devices.
     - `id` (string): ID of the block.
   - **Example**:
     ```javascript
-    const contents = await broker.call("storage.blocks.ls", {
+    const contents = await broker.call("v1.storage.blocks.ls", {
       id: "block-id"
     });
     console.log(contents);
@@ -334,7 +477,7 @@ Manages block storage devices.
     - `id` (string): ID of the block.
   - **Example**:
     ```javascript
-    const info = await broker.call("storage.blocks.info", {
+    const info = await broker.call("v1.storage.blocks.info", {
       id: "block-id"
     });
     console.log(info);
@@ -347,7 +490,7 @@ Manages block storage devices.
     - `id` (string): ID of the block.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.createBlockController", {
+    await broker.call("v1.storage.blocks.createBlockController", {
       id: "block-id"
     });
     ```
@@ -357,7 +500,7 @@ Manages block storage devices.
     - `id` (string): ID of the block.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.startBlockFrontend", {
+    await broker.call("v1.storage.blocks.startBlockFrontend", {
       id: "block-id"
     });
     ```
@@ -367,7 +510,7 @@ Manages block storage devices.
     - `id` (string): ID of the block.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.shutdownBlockFrontend", {
+    await broker.call("v1.storage.blocks.shutdownBlockFrontend", {
       id: "block-id"
     });
     ```
@@ -377,7 +520,7 @@ Manages block storage devices.
     - `id` (string): ID of the block.
   - **Example**:
     ```javascript
-    const info = await broker.call("storage.blocks.getBlockControllerInfo", {
+    const info = await broker.call("v1.storage.blocks.getBlockControllerInfo", {
       id: "block-id"
     });
     console.log(info);
@@ -389,7 +532,7 @@ Manages block storage devices.
     - `size` (number): New block size.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.expandBlockController", {
+    await broker.call("v1.storage.blocks.expandBlockController", {
       id: "block-id",
       size: 20
     });
@@ -400,7 +543,7 @@ Manages block storage devices.
     - `id` (string): ID of the block.
   - **Example**:
     ```javascript
-    await broker.call("storage.blocks.deleteBlockController", {
+    await broker.call("v1.storage.blocks.deleteBlockController", {
       id: "block-id"
     });
     ```
@@ -413,7 +556,7 @@ The services use configuration settings defined in the `config` object within ea
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/FLYBYME/block-storage.git
+   git clone https://github.com/FLYBYME/block-v1.storage.git
    cd block-storage
    ```
 
