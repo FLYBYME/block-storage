@@ -4,7 +4,7 @@
 
 ## Overview
 
-block-storage is a microservice-based storage management system built using the Moleculer framework. It provides functionalities to manage NFS servers, folders, disks, and block storage devices. The system is designed to be highly scalable and flexible, allowing for easy integration with various storage backends and orchestration platforms like Kubernetes.
+block-storage is a microservice-based storage management system built using the Moleculer framework. It provides functionalities to manage NFS servers, folders, disks, and block storage devices. The system is designed to be highly scalable and flexible, allowing for easy integration with various storage backends and orchestration platforms like Kubernetes. Currently only Kubernetes is supported.
 
 Key features include:
 - **NFS Management**: Provision and manage NFS servers for shared storage.
@@ -15,8 +15,9 @@ Key features include:
 
 ### Requirements
 
-- [Moleculer](https://moleculer.services)
-- [Kubernetes](https://kubernetes.io)
+These services require the following services to be running:
+
+- [Kubernetes-service](https://github.com/FLYBYME/kubernetes-service)
 - [Config-service](https://github.com/FLYBYME/config-service)
 - [Nodes-service](https://github.com/FLYBYME/nodes-service)
 

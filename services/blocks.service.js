@@ -5,10 +5,6 @@ const Context = require("moleculer").Context;
 const Lock = require('../lib/lock')
 
 const ConfigMixin = require("../mixins/config.mixin");
-const BlockControllerMixin = require("../mixins/block.controllers.mixin");
-const BlockReplicasMixin = require("../mixins/block.replicas.mixin");
-const BlockSnapshotsMixin = require("../mixins/block.snapshots.mixin");
-const BlockMixin = require("../mixins/block.mixin");
 
 module.exports = {
 	name: "storage.blocks",
@@ -23,10 +19,6 @@ module.exports = {
 			}
 		}),
 		ConfigMixin,
-		BlockControllerMixin,
-		BlockReplicasMixin,
-		BlockMixin,
-		BlockSnapshotsMixin
 	],
 
 	settings: {
@@ -637,6 +629,1306 @@ module.exports = {
 				return this.balanceBlock(ctx, block);
 			}
 		},
+		/**
+		* longhorn ls command to retrieve a list of replicas for a block storage
+		* 
+		* @actions
+		* @param {String} id - block storage id
+		* 
+		* @returns {Object} - the command result
+		*/
+		ls: {
+			rest: {
+				method: "GET",
+				path: "/:id/ls"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false
+				}
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				return this.ls(ctx, block);
+			}
+		},
+
+		/**
+		 * longhorn info command
+		 * 
+		 * @actions
+		 * @param {String} id - block storage id
+		 * 
+		 * @returns {Object} - the command result
+		 */
+		info: {
+			rest: {
+				method: "GET",
+				path: "/:id/info"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false
+				}
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				return this.info(ctx, block);
+			}
+		},
+
+		/**
+		 * remove replica pod
+		 * 
+		 * @actions
+		 * @param {String} id - block storage id
+		 * @param {String} replica - replica pod id
+		 * 
+		 * @returns {Object} - updated block storage object
+		 */
+		removeReplicaPod: {
+			rest: {
+				method: "POST",
+				path: "/:id/remove-replica-pod"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false
+				},
+				replica: {
+					type: "string",
+					empty: false,
+					optional: false
+				}
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				const replica = block.replicas.find(r => r.id === ctx.params.replica);
+				if (!replica) {
+					throw new MoleculerClientError(
+						`Replica with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				return this.removeReplicaPod(ctx, block, replica);
+			}
+		},
+
+		updateReplicaMode: {
+			rest: {
+				method: "POST",
+				path: "/:id/update-replica-mode"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false
+				},
+				mode: {
+					type: "string",
+					enum: [
+						"RO",
+						"RW",
+						"ERR"
+					],
+					empty: false,
+					optional: false
+				}
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				return this.updateReplicaMode(ctx, block, ctx.params.mode);
+			}
+		},
+		/**
+		 * Create a Longhorn block controller
+		 * 
+		 * @actions
+		 * @param {String} id - Block ID
+		 * 
+		 * @returns {Object} - Updated block controller
+		 */
+		createBlockController: {
+			rest: {
+				method: "POST",
+				path: "/:id/controller"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false,
+				}
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				return this.createBlockController(ctx, block);
+			}
+		},
+
+		/**
+		 * Start a Longhorn block controller
+		 * 
+		 * @actions
+		 * @param {String} id - Block ID
+		 * 
+		 * @returns {Object} - Updated block controller
+		 */
+		startBlockFrontend: {
+			rest: {
+				method: "POST",
+				path: "/:id/controller/start"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false,
+				}
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				return this.startBlockFrontend(ctx, block);
+			}
+		},
+
+		/**
+		 * Shutdown a Longhorn block controller
+		 * 
+		 * @actions
+		 * @param {String} id - Block ID
+		 * 
+		 * @returns {Object} - Updated block controller
+		 */
+		shutdownBlockFrontend: {
+			rest: {
+				method: "POST",
+				path: "/:id/controller/shutdown"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false,
+				}
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				return this.shutdownBlockFrontend(ctx, block);
+			}
+		},
+
+		/**
+		 * Get Longhorn block controller info
+		 * 
+		 * @actions
+		 * @param {String} id - Block ID
+		 * 
+		 * @returns {Object} - Block controller info
+		 */
+		getBlockControllerInfo: {
+			rest: {
+				method: "GET",
+				path: "/:id/controller/info"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false,
+				}
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				return this.getBlockControllerInfo(ctx, block);
+			}
+		},
+
+		/**
+		 * Expand a Longhorn block controller
+		 * 
+		 * @actions
+		 * @param {String} id - Block ID
+		 * @param {Number} size - New block size
+		 * 
+		 * @returns {Object} - Updated block controller
+		 */
+		expandBlockController: {
+			rest: {
+				method: "POST",
+				path: "/:id/controller/expand"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false,
+				},
+				size: {
+					type: "number",
+					min: 1,
+					optional: false,
+				}
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				return this.expandBlockController(ctx, block, { size: ctx.params.size });
+			}
+		},
+
+		/**
+		 * Delete a Longhorn block controller
+		 * 
+		 * @actions
+		 * @param {String} id - Block ID
+		 * 
+		 * @returns {Object} - Updated block controller
+		 */
+		deleteBlockController: {
+			rest: {
+				method: "DELETE",
+				path: "/:id/controller"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false,
+				}
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				return this.deleteBlockController(ctx, block);
+			}
+		},
+		/**
+		 * Create new replica for a block
+		 * 
+		 * @actions
+		 * @param {String} id - block storage id
+		 * @param {String} disk - disk id
+		 * 
+		 * @returns {Object} - updated block object
+		 */
+		createReplica: {
+			rest: {
+				method: "POST",
+				path: "/:id/replicas/create"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false
+				},
+				disk: {
+					type: "string",
+					empty: false,
+					optional: false
+				}
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				const disk = await ctx.call("v1.storage.disks.resolve", { id: ctx.params.disk });
+				if (!disk) {
+					throw new MoleculerClientError(
+						`Disk with id '${ctx.params.disk}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.disk }
+					);
+				}
+
+				return this.createReplica(ctx, block, disk);
+			}
+		},
+
+		/**
+		 * Remove a replica from a block
+		 * 
+		 * @actions
+		 * @param {String} id - block storage id
+		 * @param {String} replica - replica id
+		 * 
+		 * @returns {Object} - updated block object
+		 */
+		removeReplicaFromBlock: {
+			rest: {
+				method: "POST",
+				path: "/:id/replicas/:replica/remove"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false
+				},
+				replica: {
+					type: "string",
+					empty: false,
+					optional: false
+				}
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				const replica = block.replicas.find(r => r.id === ctx.params.replica);
+				if (!replica) {
+					throw new MoleculerClientError(
+						`Block storage ${block.id} replica ${ctx.params.replica} not found`,
+						404, "NOT_FOUND", { id: ctx.params.replica }
+					);
+				}
+
+				return this.removeReplicaFromBlock(ctx, block, replica);
+			}
+		},
+
+		/**
+		 * Add a replica to a volume frontend
+		 * 
+		 * @actions
+		 * @param {String} id - block storage id
+		 * @param {String} replica - replica id to add
+		 * @param {Boolean} restore - restore flag
+		 * @param {Boolean} fastSync - fast sync flag
+		 * @param {Number} fileSyncHttpClientTimeout - file sync http client timeout
+		 * 
+		 * @returns {Object} - result from the command
+		 */
+		addReplicaToFrontend: {
+			rest: {
+				method: "POST",
+				path: "/:id/replicas/add"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false
+				},
+				replica: {
+					type: "string",
+					empty: false,
+					optional: false
+				},
+				restore: {
+					type: "boolean",
+					optional: true
+				},
+				fastSync: {
+					type: "boolean",
+					optional: true
+				},
+				fileSyncHttpClientTimeout: {
+					type: "number",
+					optional: true
+				}
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				const replica = block.replicas.find(r => r.id === ctx.params.replica);
+				if (!replica) {
+					throw new MoleculerClientError(
+						`Block storage ${block.id} replica ${ctx.params.replica} not found`,
+						404, "NOT_FOUND", { id: ctx.params.replica }
+					);
+				}
+
+				return this.addReplicaToFrontend(ctx, block, replica, {
+					restore: ctx.params.restore,
+					fastSync: ctx.params.fastSync,
+					fileSyncHttpClientTimeout: ctx.params.fileSyncHttpClientTimeout
+				});
+			}
+		},
+
+		/**
+		 * List replicas of a block
+		 * 
+		 * @actions
+		 * @param {String} id - block storage id
+		 * 
+		 * @returns {Array} - replicas
+		 */
+		listReplicas: {
+			rest: {
+				method: "GET",
+				path: "/:id/replicas"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false
+				}
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				return this.listReplicas(ctx, block);
+			}
+		},
+
+		/**
+		 * Remove a replica from a block frontend
+		 * 
+		 * @actions
+		 * @param {String} id - block storage id
+		 * @param {String} replica - replica id
+		 * 
+		 * @returns {Object} - result from the command
+		 */
+		removeReplicaFromFrontend: {
+			rest: {
+				method: "DELETE",
+				path: "/:id/replicas/:replica"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false
+				},
+				replica: {
+					type: "string",
+					empty: false,
+					optional: false
+				},
+				force: {
+					type: "boolean",
+					optional: true,
+					default: false,
+					convert: true
+				}
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				const replica = block.replicas.find(r => r.id === ctx.params.replica);
+				if (!replica) {
+					throw new MoleculerClientError(
+						`Block storage ${block.id} replica ${ctx.params.replica} not found`,
+						404, "NOT_FOUND", { id: ctx.params.replica }
+					);
+				}
+
+				if (block.replicas.length === 1 && !ctx.params.force) {
+					throw new MoleculerClientError(
+						`Block storage ${block.id} only has one replica and force flag is not set`,
+						400, "BAD_REQUEST", { id: ctx.params.replica }
+					);
+				}
+
+				return this.removeReplicaFromFrontend(ctx, block, replica);
+			}
+		},
+
+		/**
+		 * Update a replica of a block
+		 * 
+		 * @actions
+		 * @param {String} id - block storage id
+		 * @param {String} replica - replica id
+		 * @param {String} mode - replica mode
+		 * 
+		 * @returns {Object} - result from the command
+		 */
+		updateReplica: {
+			rest: {
+				method: "POST",
+				path: "/:id/replicas/:replica/update"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false
+				},
+				replica: {
+					type: "string",
+					empty: false,
+					optional: false
+				},
+				mode: {
+					type: "string",
+					empty: false,
+					enum: ["RO", "RW", "ERR"],
+					optional: false
+				}
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				const replica = block.replicas.find(r => r.id === ctx.params.replica);
+				if (!replica) {
+					throw new MoleculerClientError(
+						`Block storage ${block.id} replica ${ctx.params.replica} not found`,
+						404, "NOT_FOUND", { id: ctx.params.replica }
+					);
+				}
+
+				return this.updateReplica(ctx, block, replica, {
+					mode: ctx.params.mode
+				});
+			}
+		},
+
+		/**
+		 * Get the rebuild status of a replica of a block
+		 * 
+		 * @actions
+		 * @param {String} id - block storage id
+		 * @param {String} replica - replica id
+		 * 
+		 * @returns {Object} - result from the command
+		 */
+		getRebuildStatus: {
+			rest: {
+				method: "GET",
+				path: "/:id/replicas/:replica/rebuild-status"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false
+				},
+				replica: {
+					type: "string",
+					empty: false,
+					optional: false
+				}
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				const replica = block.replicas.find(r => r.id === ctx.params.replica);
+				if (!replica) {
+					throw new MoleculerClientError(
+						`Block storage ${block.id} replica ${ctx.params.replica} not found`,
+						404, "NOT_FOUND", { id: ctx.params.replica }
+					);
+				}
+
+				return this.getRebuildStatus(ctx, block, replica);
+			}
+		},
+
+		/**
+		 * Verify the rebuild status of a replica of a block
+		 * 
+		 * @actions
+		 * @param {String} id - block storage id
+		 * @param {String} replica - replica id
+		 * @param {String} instance - replica instance name
+		 * 
+		 * @returns {Object} - result from the command
+		 */
+		verifyRebuild: {
+			rest: {
+				method: "POST",
+				path: "/:id/replicas/:replica/verify-rebuild"
+			},
+			params: {
+				id: {
+					type: "string",
+					empty: false,
+					optional: false
+				},
+				replica: {
+					type: "string",
+					empty: false,
+					optional: false
+				},
+			},
+			async handler(ctx) {
+				const block = await this.findById(ctx, ctx.params.id);
+				if (!block) {
+					throw new MoleculerClientError(
+						`Block storage with id '${ctx.params.id}' not found`,
+						404, "NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				const replica = block.replicas.find(r => r.id === ctx.params.replica);
+				if (!replica) {
+					throw new MoleculerClientError(
+						`Block storage ${block.id} replica ${ctx.params.replica} not found`,
+						404, "NOT_FOUND", { id: ctx.params.replica }
+					);
+				}
+
+				return this.verifyRebuild(ctx, block, replica);
+			}
+		},
+        /**
+         * Create a snapshot of a volume
+         * 
+         * @actions
+         * @param {String} id - ID of the block
+         * 
+         * @returns {Object} - Block object
+         */
+        createSnapshot: {
+            rest: {
+                method: "POST",
+                path: "/:id/snapshots/create"
+            },
+            params: {
+                id: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+            },
+            async handler(ctx) {
+                const block = await this.findById(ctx, ctx.params.id);
+                if (!block) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} not found`,
+                        404, "NOT_FOUND", { id: ctx.params.id }
+                    )
+                }
+
+                if (!block.online) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} is not online`,
+                        400, "BAD_REQUEST", { id: ctx.params.id }
+                    )
+                }
+
+                return this.createSnapshot(ctx, block);
+            }
+        },
+
+        /**
+         * Revert a volume to a specific snapshot
+         * 
+         * @actions
+         * @param {String} id - ID of the block
+         * @param {String} snapshotName - Name of the snapshot
+         * 
+         * @returns {Object} - Block object
+         */
+        revertSnapshot: {
+            rest: {
+                method: "POST",
+                path: "/:id/snapshots/revert"
+            },
+            params: {
+                id: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+                snapshotName: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+            },
+            async handler(ctx) {
+                const block = await this.findById(ctx, ctx.params.id);
+                if (!block) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} not found`,
+                        404, "NOT_FOUND", { id: ctx.params.id }
+                    )
+                }
+
+                if (!block.online) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} is not online`,
+                        400, "BAD_REQUEST", { id: ctx.params.id }
+                    )
+                }
+
+                return this.revertSnapshot(ctx, block, ctx.params.snapshotName);
+            }
+        },
+
+        /**
+         * List snapshots of a volume
+         * 
+         * @actions
+         * @param {String} id - ID of the block
+         * 
+         * @returns {Array} - Array of snapshot objects
+         */
+        listSnapshots: {
+            rest: {
+                method: "GET",
+                path: "/:id/snapshots/list"
+            },
+            params: {
+                id: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+            },
+            async handler(ctx) {
+                const block = await this.findById(ctx, ctx.params.id);
+                if (!block) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} not found`,
+                        404, "NOT_FOUND", { id: ctx.params.id }
+                    )
+                }
+
+                if (!block.online) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} is not online`,
+                        400, "BAD_REQUEST", { id: ctx.params.id }
+                    )
+                }
+
+                return this.listSnapshots(ctx, block);
+            }
+        },
+
+        /**
+         * Remove a snapshot of a volume
+         * 
+         * @actions
+         * @param {String} id - ID of the block
+         * @param {String} snapshotName - Name of the snapshot
+         * 
+         * @returns {Object} - Block object
+         */
+        removeSnapshot: {
+            rest: {
+                method: "POST",
+                path: "/:id/snapshots/remove"
+            },
+            params: {
+                id: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+                snapshotName: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+            },
+            async handler(ctx) {
+                const block = await this.findById(ctx, ctx.params.id);
+                if (!block) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} not found`,
+                        404, "NOT_FOUND", { id: ctx.params.id }
+                    )
+                }
+
+                if (!block.online) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} is not online`,
+                        400, "BAD_REQUEST", { id: ctx.params.id }
+                    )
+                }
+
+                return this.removeSnapshot(ctx, block, ctx.params.snapshotName);
+            }
+        },
+
+        /**
+         * Purge snapshots of a volume
+         * 
+         * @actions
+         * @param {String} id - ID of the block
+         * @param {Boolean} skipInProgress - set to mute errors if replica is already purging
+         * 
+         * @returns {Object} - Block object
+         */
+        purgeSnapshots: {
+            rest: {
+                method: "POST",
+                path: "/:id/snapshots/purge"
+            },
+            params: {
+                id: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+                skipInProgress: {
+                    type: "boolean",
+                    default: false,
+                    optional: true
+                },
+            },
+            async handler(ctx) {
+                const block = await this.findById(ctx, ctx.params.id);
+                if (!block) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} not found`,
+                        404, "NOT_FOUND", { id: ctx.params.id }
+                    )
+                }
+
+                if (!block.online) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} is not online`,
+                        400, "BAD_REQUEST", { id: ctx.params.id }
+                    )
+                }
+
+                return this.purgeSnapshots(ctx, block, ctx.params.skipInProgress);
+            }
+        },
+
+        /**
+         * Get status of the purge operation of snapshots of a volume
+         * 
+         * @actions
+         * @param {String} id - ID of the block
+         * 
+         * @returns {Object} - Block object
+         */
+        purgeSnapshotsStatus: {
+            rest: {
+                method: "GET",
+                path: "/:id/snapshots/purge-status"
+            },
+            params: {
+                id: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+            },
+            async handler(ctx) {
+                const block = await this.findById(ctx, ctx.params.id);
+                if (!block) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} not found`,
+                        404, "NOT_FOUND", { id: ctx.params.id }
+                    )
+                }
+
+                if (!block.online) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} is not online`,
+                        400, "BAD_REQUEST", { id: ctx.params.id }
+                    )
+                }
+
+                return this.purgeSnapshotsStatus(ctx, block);
+            }
+        },
+
+        /**
+         * Get information about a snapshot of a volume
+         * 
+         * @actions
+         * @param {String} id - ID of the block
+         * @param {String} snapshotName - Name of the snapshot
+         * 
+         * @returns {Object} - Snapshot object
+         */
+        getSnapshotInfo: {
+            rest: {
+                method: "GET",
+                path: "/:id/snapshots/info"
+            },
+            params: {
+                id: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+            },
+            async handler(ctx) {
+                const block = await this.findById(ctx, ctx.params.id);
+                if (!block) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} not found`,
+                        404, "NOT_FOUND", { id: ctx.params.id }
+                    )
+                }
+
+                if (!block.online) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} is not online`,
+                        400, "BAD_REQUEST", { id: ctx.params.id }
+                    )
+                }
+
+                return this.getSnapshotInfo(ctx, block);
+            }
+        },
+
+        /**
+         * Clone a snapshot of a volume
+         * 
+         * @actions
+         * @param {String} id - ID of the block
+         * @param {String} snapshot-name - Specify the name of snapshot needed to clone
+         * @param {String} from-controller-address - Specify the address of the engine controller of the source volume
+         * @param {String} from-volume-name - Specify the name of the source volume (for validation purposes)
+         * @param {String} from-controller-instance-name - Specify the name of the engine controller instance of the source volume (for validation purposes)
+         * 
+         * @returns {Object} - Block object
+         */
+        cloneSnapshot: {
+            rest: {
+                method: "POST",
+                path: "/:id/snapshots/clone"
+            },
+            params: {
+                id: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+                snapshotName: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+                fromControllerAddress: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+                fromVolumeName: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+                fromControllerInstanceName: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+            },
+            async handler(ctx) {
+                const block = await this.findById(ctx, ctx.params.id);
+                if (!block) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} not found`,
+                        404, "NOT_FOUND", { id: ctx.params.id }
+                    )
+                }
+
+                if (!block.online) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} is not online`,
+                        400, "BAD_REQUEST", { id: ctx.params.id }
+                    )
+                }
+
+                return this.cloneSnapshot(ctx, block, ctx.params.snapshotName,
+                    ctx.params.fromControllerAddress, ctx.params.fromVolumeName, ctx.params.fromControllerInstanceName);
+            }
+        },
+
+        /**
+         * Get status of the clone operation of a snapshot of a volume
+         * 
+         * @actions
+         * @param {String} id - ID of the block
+         * @param {String} snapshotName - Name of the snapshot
+         * 
+         * @returns {Object} - Block object
+         */
+        cloneSnapshotStatus: {
+            rest: {
+                method: "GET",
+                path: "/:id/snapshots/clone-status"
+            },
+            params: {
+                id: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+                snapshotName: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+            },
+            async handler(ctx) {
+                const block = await this.findById(ctx, ctx.params.id);
+                if (!block) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} not found`,
+                        404, "NOT_FOUND", { id: ctx.params.id }
+                    )
+                }
+
+                if (!block.online) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} is not online`,
+                        400, "BAD_REQUEST", { id: ctx.params.id }
+                    )
+                }
+
+                return this.cloneSnapshotStatus(ctx, block, ctx.params.snapshotName);
+            }
+        },
+
+        /**
+         * Get hash of a snapshot of a volume
+         * 
+         * @actions
+         * @param {String} id - ID of the block
+         * @param {String} snapshotName - Name of the snapshot
+         * 
+         * @returns {Object} - Block object
+         */
+        startSnapshotHash: {
+            rest: {
+                method: "POST",
+                path: "/:id/snapshots/hash"
+            },
+            params: {
+                id: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+                snapshotName: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+            },
+            async handler(ctx) {
+                const block = await this.findById(ctx, ctx.params.id);
+                if (!block) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} not found`,
+                        404, "NOT_FOUND", { id: ctx.params.id }
+                    )
+                }
+
+                if (!block.online) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} is not online`,
+                        400, "BAD_REQUEST", { id: ctx.params.id }
+                    )
+                }
+
+                return this.startSnapshotHash(ctx, block, ctx.params.snapshotName);
+            }
+        },
+
+        /**
+         * Cancel the hash calculation of a snapshot of a volume
+         * 
+         * @actions
+         * @param {String} id - ID of the block
+         * @param {String} snapshotName - Name of the snapshot
+         * 
+         * @returns {Object} - Block object
+         */
+        cancelSnapshotHash: {
+            rest: {
+                method: "POST",
+                path: "/:id/snapshots/hash-cancel"
+            },
+            params: {
+                id: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+                snapshotName: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+            },
+            async handler(ctx) {
+                const block = await this.findById(ctx, ctx.params.id);
+                if (!block) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} not found`,
+                        404, "NOT_FOUND", { id: ctx.params.id }
+                    )
+                }
+
+                if (!block.online) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} is not online`,
+                        400, "BAD_REQUEST", { id: ctx.params.id }
+                    )
+                }
+
+                return this.cancelSnapshotHash(ctx, block, ctx.params.snapshotName);
+            }
+        },
+        /**
+         * Get status of the hash calculation of a snapshot of a volume
+         * 
+         * @actions
+         * @param {String} id - ID of the block
+         * @param {String} snapshotName - Name of the snapshot
+         * 
+         * @returns {Object} - Block object
+         */
+        getSnapshotHashStatus: {
+            rest: {
+                method: "GET",
+                path: "/:id/snapshots/hash-status"
+            },
+            params: {
+                id: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+                snapshotName: {
+                    type: "string",
+                    empty: false,
+                    optional: false
+                },
+            },
+            async handler(ctx) {
+                const block = await this.findById(ctx, ctx.params.id);
+                if (!block) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} not found`,
+                        404, "NOT_FOUND", { id: ctx.params.id }
+                    )
+                }
+
+                if (!block.online) {
+                    return MoleculerClientError(
+                        `Block with ID ${ctx.params.id} is not online`,
+                        400, "BAD_REQUEST", { id: ctx.params.id }
+                    )
+                }
+
+                return this.getSnapshotHashStatus(ctx, block, ctx.params.snapshotName);
+            }
+        },
+
 	},
 
 	events: {
@@ -646,7 +1938,7 @@ module.exports = {
 		async "kubernetes.pods.added"(ctx) {
 			const pod = ctx.params;
 		},
-		
+
 		async "kubernetes.pods.modified"(ctx) {
 			const pod = ctx.params;
 
@@ -1348,6 +2640,1216 @@ module.exports = {
 			this.logger.info(`Block ${block.id} trimmed`);
 
 			return block;
+		},
+
+		/**
+		 * longhorn info command
+		 * 
+		 * @param {Context} ctx - context of the request
+		 * @param {Object} block - block storage object
+		 * 
+		 * @returns {Object} - the command result
+		 */
+		async info(ctx, block) {
+			return this.exec(ctx, block, [
+				"longhorn",
+				"info",
+			]).then(async (res) => {
+				const json = JSON.parse(res.stdout);
+				return json;
+			});
+		},
+
+		/**
+		 * longhorn ls command
+		 * 
+		 * @param {Context} ctx - context of the request
+		 * @param {Object} block - block storage object
+		 * 
+		 * @returns {Object} - the command result
+		 */
+		async ls(ctx, block) {
+			const res = await this.exec(ctx, block, [
+				"longhorn",
+				"ls",
+			]);
+
+			const lines = res.stdout.split("\n");
+			const replicas = lines.slice(1)
+				.filter(line => line.length > 0)
+				.map(line => {
+					const parts = line.split(" ");
+					// tcp://10.42.0.18:10000 RW   [volume-head-001.img volume-snap-16e36ddf-7924-4409-994e-982f714a1c26.img]
+					const endpoint = parts.shift();
+					const mode = parts.shift();
+					const ip = endpoint.split(":")[1].replace("//", "");
+					const replica = block.replicas.find(r => r.ip === ip);
+
+					const volumeRegex = /\[(.*)\]/;
+					const volumeMatch = line.match(volumeRegex);
+					console.log(volumeMatch, line)
+					const volumes = volumeMatch[1].split(" ");
+
+					return {
+						...replica,
+						endpoint,
+						mode,
+						volumes
+					};
+				});
+
+			return replicas;
+		},
+
+		/**
+		 * update replica mode
+		 * 
+		 * @param {Context} ctx - context of the request
+		 * @param {Object} block - block storage object
+		 * @param {Object} replica - replica pod object
+		 * 
+		 * @returns {Object} - the block storage object
+		 */
+		async updateReplicaMode(ctx, block, replica) {
+			if (block.online) {
+				// update the replica mode
+				await this.exec(ctx, block, [
+					"longhorn",
+					"controller",
+					"update",
+					`tcp://${replica.ip}:10000`,
+					replica.mode
+				]);
+			}
+
+			this.logger.info(`Block storage ${block.id} replica pod ${replica.id} mode updated`);
+
+			return block;
+		},
+
+        /**
+         * Create a snapshot of a volume
+         * 
+         * @param {Context} ctx - Moleculer Context instance of the current action
+         * @param {Object} block - Block object
+         * 
+         * @returns {Promise<Object>} - Block object
+         */
+        async createSnapshot(ctx, block) {
+            const command = [
+                "longhorn",
+                "snapshots",
+                "create"
+            ];
+
+            const result = await this.exec(ctx, block, command);
+
+            // TODO: create new entity of the snapshot
+            return result;
+        },
+
+        /**
+         * Revert a volume to a specific snapshot
+         * 
+         * @param {Context} ctx - Moleculer Context instance of the current action
+         * @param {Object} block - Block object
+         * @param {String} snapshotName - Name of the snapshot
+         * @param {String} volumeName - Name of the volume
+         * 
+         * @returns {Promise<Object>} - Block object
+         */
+        async revertSnapshot(ctx, block, snapshotName, volumeName) {
+            const command = [
+                "longhorn",
+                "snapshots",
+                "revert",
+                snapshotName,
+            ];
+
+            const result = await this.exec(ctx, block, command);
+
+            return result;
+        },
+
+        /**
+         * List snapshots of a volume
+         * 
+         * @param {Context} ctx - Moleculer Context instance of the current action
+         * @param {Object} block - Block object
+         * 
+         * @returns {Promise<Array>} - Array of snapshot IDs
+         */
+        async listSnapshots(ctx, block) {
+            const command = [
+                "longhorn",
+                "snapshots",
+                "ls"
+            ];
+
+            const result = await this.exec(ctx, block, command);
+
+            const lines = result.stdout.split("\n");
+
+            lines.shift(); // remove header line
+
+            return lines.filter(line => line.length > 0);
+        },
+
+        /**
+         * Remove a snapshot of a volume
+         * 
+         * @param {Context} ctx - Moleculer Context instance of the current action
+         * @param {Object} block - Block object
+         * @param {String} snapshotName - Name of the snapshot
+         * @param {String} volumeName - Name of the volume
+         * 
+         * @returns {Promise<Object>} - Block object
+         */
+        async removeSnapshot(ctx, block, snapshotName, volumeName) {
+            const command = [
+                "longhorn",
+                "snapshots",
+                "rm",
+                snapshotName
+            ];
+
+            const result = await this.exec(ctx, block, command);
+
+            return result;
+        },
+
+        /**
+         * Purge snapshots of a volume
+         * 
+         * When the snapshot purge is triggered, replicas will identify if the snapshot being removed 
+         * is the latest snapshot by checking one child of it is the volume head. If YES, they will
+         * start the snapshot pruning operation:
+         * 
+         * Before pruning, replicas will make sure the apparent size of the snapshot is the same as that of the volume head. 
+         * If No, we will truncate/expand the snapshot first.
+         * 
+         * During pruning, replicas need to iterate the volume head fiemap. Then as long as there is a data chunk found
+         * in the volume head file, they will blindly punch a hole at the same position of the snapshot file. 
+         * If there are multiple snapshots including the latest one being removed simultaneously, 
+         * we need to make sure the pruning is done only after all the other snapshots have done coalescing and deletion.
+         * 
+         * @param {Context} ctx - Moleculer Context instance of the current action
+         * @param {Object} block - Block object
+         * @param {Boolean} skipInProgress - set to mute errors if replica is already purging
+         * 
+         * @returns {Promise<Object>} - Block object
+         */
+        async purgeSnapshots(ctx, block, skipInProgress) {
+            const command = [
+                "longhorn",
+                "snapshots",
+                "purge"
+            ];
+
+            if (skipInProgress) {
+                command.push("--skip-if-in-progress");
+            }
+
+            const result = await this.exec(ctx, block, command);
+
+            return result;
+        },
+
+        /**
+         * Get status of the purge operation of snapshots of a volume
+         * 
+         * @param {Context} ctx - Moleculer Context instance of the current action
+         * @param {Object} block - Block object
+         * @param {String} volumeName - Name of the volume
+         * 
+         * @returns {Promise<Object>} - Block object
+         */
+        async purgeSnapshotsStatus(ctx, block, volumeName) {
+            const command = [
+                "longhorn",
+                "snapshots",
+                "purge-status"
+            ];
+
+            const result = await this.exec(ctx, block, command);
+
+            return result;
+        },
+
+        /**
+         * Get information about a snapshot of a volume
+         * 
+         * @param {Context} ctx - Moleculer Context instance of the current action
+         * @param {Object} block - Block object
+         * 
+         * @returns {Promise<Object>} - Snapshot object
+         */
+        async getSnapshotInfo(ctx, block) {
+            const command = [
+                "longhorn",
+                "snapshots",
+                "info"
+            ];
+
+            const result = await this.exec(ctx, block, command);
+
+            return JSON.parse(result.stdout);
+        },
+
+        /**
+         * Clone a snapshot of a volume
+         * 
+         * @param {Context} ctx - Moleculer Context instance of the current action
+         * @param {Object} block - Block object
+         * @param {String} snapshot-name - Specify the name of snapshot needed to clone
+         * @param {String} from-controller-address - Specify the address of the engine controller of the source volume
+         * @param {String} from-volume-name - Specify the name of the source volume (for validation purposes)
+         * @param {String} from-controller-instance-name - Specify the name of the engine controller instance of the source volume (for validation purposes)
+         * 
+         * @returns {Promise<Object>} - Block object
+         */
+        async cloneSnapshot(ctx, block, snapshotName, fromControllerAddress, fromVolumeName, fromControllerInstanceName) {
+            const command = [
+                "longhorn",
+                "snapshots",
+                "clone",
+                "--snapshot-name",
+                snapshotName,
+                "--from-controller-address",
+                fromControllerAddress,
+                "--from-volume-name",
+                fromVolumeName,
+                "--from-controller-instance-name",
+                fromControllerInstanceName
+            ];
+
+            const result = await this.exec(ctx, block, command);
+
+            return result;
+
+        },
+
+        /**
+         * Get status of the clone operation of a snapshot of a volume
+         * 
+         * @param {Context} ctx - Moleculer Context instance of the current action
+         * @param {Object} block - Block object
+         * @param {String} snapshotName - Name of the snapshot
+         * @param {String} volumeName - Name of the volume
+         * 
+         * @returns {Promise<Object>} - Block object
+         */
+        async cloneSnapshotStatus(ctx, block, snapshotName, volumeName) {
+            const command = [
+                "longhorn",
+                "snapshots",
+                "clone-status",
+                snapshotName
+            ];
+
+            const result = await this.exec(ctx, block, command);
+
+            return result;
+        },
+
+        /**
+         * Get hash of a snapshot of a volume
+         * 
+         * @param {Context} ctx - Moleculer Context instance of the current action
+         * @param {Object} block - Block object
+         * @param {String} snapshotName - Name of the snapshot
+         * @param {String} volumeName - Name of the volume
+         * 
+         * @returns {Promise<Object>} - Block object
+         */
+        async startSnapshotHash(ctx, block, snapshotName, volumeName) {
+            const command = [
+                "longhorn",
+                "snapshots",
+                "hash",
+                snapshotName
+            ];
+
+            const result = await this.exec(ctx, block, command);
+
+            return result;
+        },
+
+        /**
+         * Cancel the hash calculation of a snapshot of a volume
+         * 
+         * @param {Context} ctx - Moleculer Context instance of the current action
+         * @param {Object} block - Block object
+         * @param {String} snapshotName - Name of the snapshot
+         * @param {String} volumeName - Name of the volume
+         * 
+         * @returns {Promise<Object>} - Block object
+         */
+        async cancelSnapshotHash(ctx, block, snapshotName, volumeName) {
+            const command = [
+                "longhorn",
+                "snapshots",
+                "hash-cancel",
+                snapshotName
+            ];
+
+            const result = await this.exec(ctx, block, command);
+
+            return result;
+        },
+
+        /**
+         * Get status of the hash calculation of a snapshot of a volume
+         * 
+         * @param {Context} ctx - Moleculer Context instance of the current action
+         * @param {Object} block - Block object
+         * @param {String} snapshotName - Name of the snapshot
+         * @param {String} volumeName - Name of the volume
+         * 
+         * @returns {Promise<Object>} - Block object
+         */
+        async getSnapshotHashStatus(ctx, block, snapshotName, volumeName) {
+            const command = [
+                "longhorn",
+                "snapshots",
+                "hash-status",
+                snapshotName
+            ];
+
+            const result = await this.exec(ctx, block, command);
+
+            return JSON.parse(result.stdout);
+        },
+
+		/**
+		 * execute command on block
+		 * 
+		 * @param {Context} ctx
+		 * @param {Object} block
+		 * @param {Array} cmd - command
+		 * 
+		 * @returns {Promise<string>} - command output
+		 */
+		async exec(ctx, block, cmd) {
+			console.log(cmd)
+			// check if pod exists
+			if (!block.controller) {
+				throw new MoleculerClientError(
+					`Block storage ${block.id} has no controller pod`,
+					404, "NO_CONTROLLER", { id: block.id }
+				);
+			}
+
+			const pod = await ctx.call("v1.kubernetes.readNamespacedPod", {
+				cluster: block.cluster,
+				namespace: block.namespace,
+				name: block.name
+			});
+			if (!pod) {
+				throw new MoleculerClientError(
+					`Pod ${block.name} not found`,
+					404, "POD_NOT_FOUND", { id: block.name }
+				);
+			}
+
+			if (pod.status.phase !== "Running") {
+				throw new MoleculerClientError(
+					`Pod ${block.controller} is not running`,
+					500, "POD_NOT_RUNNING", { id: block.controller }
+				);
+			}
+
+			// execute command
+			return ctx.call("v1.kubernetes.exec", {
+				cluster: block.cluster,
+				namespace: block.namespace,
+				name: block.name,
+				command: cmd
+			});
+		},
+		/**
+		 * Create a Longhorn block controller
+		 * 
+		 * @param {Object} ctx - Molculer context
+		 * @param {Object} block - Block object
+		 * @params {Object} options - Action options
+		 * 
+		 * @returns {Promise<Object>} - Updated block controller
+		 */
+		async createBlockController(ctx, block, options = {}) {
+			if (block.controller) {
+				throw new MoleculerClientError(
+					`Block controller ${block.controller} already exists`,
+					409, "BLOCK_CONTROLLER_EXISTS", { controller: block.controller }
+				);
+			}
+
+			const node = await ctx.call("v1.nodes.resolve", { id: block.node });
+			if (!node) {
+				throw new MoleculerClientError(
+					`Node ${block.node} not found`,
+					404, "NODE_NOT_FOUND", { node: block.node }
+				);
+			}
+
+			const command = [
+				"longhorn",
+				"controller",
+				"--listen",
+				"0.0.0.0:9501",
+				"--size",
+				`${block.size}gb`,
+				"--current-size",
+				`${block.size}gb`,
+				"--frontend",
+				this.config.get('storage.blocks.frontend'),
+			];
+
+			for (const replica of block.replicas) {
+				command.push("--replica");
+				command.push(replica.endpoint);
+			}
+			if (options.upgrade) {
+				command.push("--upgrade");
+			}
+			if (options.disableRevCounter) {
+				command.push("--disableRevCounter");
+			}
+			if (options.salvageRequested) {
+				command.push("--salvageRequested");
+			}
+			if (options.unmapMarkSnapChainRemoved) {
+				command.push("--unmap-mark-snap-chain-removed");
+			}
+
+			if (options.snapshotMaxCount) {
+				command.push("--snapshot-max-count");
+				command.push(options.snapshotMaxCount);
+			}
+
+			if (options.snapshotMaxSize) {
+				command.push("--snapshot-max-size");
+				command.push(options.snapshotMaxSize);
+			}
+
+			if (options.engineReplicaTimeout) {
+				command.push("--engine-replica-timeout");
+				command.push(options.engineReplicaTimeout);
+			}
+
+			if (options.dataServerProtocol) {
+				command.push("--data-server-protocol");
+				command.push(options.dataServerProtocol);
+			}
+
+			if (options.fileSyncHttpClientTimeout) {
+				command.push("--file-sync-http-client-timeout");
+				command.push(options.fileSyncHttpClientTimeout);
+			}
+
+			command.push(block.name);
+
+			const pod = await ctx.call("v1.kubernetes.createNamespacedPod", {
+				cluster: block.cluster,
+				namespace: block.namespace,
+				name: block.name,
+				body: {
+					metadata: {
+						name: block.name,
+						namespace: block.namespace,
+						labels: {
+							"moleculer": "true",
+							"longhorn.io": "true",
+							"longhorn-controller": "true",
+							"block": block.id
+						}
+					},
+					spec: {
+						containers: [{
+							name: block.name,
+							image: this.config.get('storage.blocks.engineImage'),
+							command: command,
+							ports: [{
+								name: 'controller',
+								containerPort: 9501,
+								protocol: 'TCP'
+							}],
+							securityContext: {
+								privileged: true
+							},
+							volumeMounts: [{
+								name: 'node-mount',
+								mountPath: '/mnt',
+							}, {
+								name: 'dev',
+								mountPath: '/host/dev',
+							}, {
+								name: 'proc',
+								mountPath: '/host/proc',
+							}]
+						}],
+						nodeName: node.hostname,
+						volumes: [{
+							name: 'node-mount',
+							hostPath: {
+								path: '/mnt'
+							}
+						}, {
+							name: 'dev',
+							hostPath: {
+								path: '/dev'
+							}
+						}, {
+							name: 'proc',
+							hostPath: {
+								path: '/proc'
+							}
+						}],
+					}
+				}
+			})
+
+			const updated = await this.updateEntity(ctx, {
+				id: block.id,
+				controller: pod.metadata.uid,
+			});
+
+			this.logger.info(`Created block controller ${pod.metadata.uid}`);
+
+			return updated;
+		},
+
+		/**
+		 * Start a Longhorn block controller
+		 * 
+		 * @param {Object} ctx - Molculer context
+		 * @param {Object} block - Block object
+		 * 
+		 * @returns {Promise<Object>} - Updated block controller
+		 */
+		async startBlockFrontend(ctx, block) {
+			if (!block.controller) {
+				throw new MoleculerClientError(
+					`Block controller ${block.controller} not found`,
+					404, "BLOCK_CONTROLLER_NOT_FOUND", { controller: block.controller }
+				);
+			}
+
+			const command = [
+				"longhorn",
+				"frontend",
+				"start",
+				this.config.get('storage.blocks.frontend'),
+			];
+
+			const result = await this.exec(ctx, block, command);
+
+			this.logger.info(`Started block controller ${block.controller} with result: ${JSON.stringify(result)}`);
+
+			await this.updateFrontendState(ctx, block);
+
+			return result;
+		},
+
+		/**
+		 * Shutdown a Longhorn block controller
+		 * 
+		 * @param {Object} ctx - Molculer context
+		 * @param {Object} block - Block object
+		 * 
+		 * @returns {Promise<Object>} - Updated block controller
+		 */
+		async shutdownBlockFrontend(ctx, block) {
+			if (!block.controller) {
+				throw new MoleculerClientError(
+					`Block controller ${block.controller} not found`,
+					404, "BLOCK_CONTROLLER_NOT_FOUND", { controller: block.controller }
+				);
+			}
+
+			const command = [
+				"longhorn",
+				"frontend",
+				"shutdown",
+			];
+
+			const result = await this.exec(ctx, block, command);
+
+			this.logger.info(`Shutdown block controller ${block.controller} with result: ${JSON.stringify(result)}`);
+
+			await this.updateFrontendState(ctx, block);
+
+			return result;
+		},
+
+		/**
+		 * Get Longhorn block controller info
+		 * 
+		 * @param {Object} ctx - Molculer context
+		 * @param {Object} block - Block object
+		 * @params {Object} options - Action options
+		 * 
+		 * @returns {Promise<Object>} - Block controller info
+		 */
+		async getBlockControllerInfo(ctx, block, options = {}) {
+			if (!block.controller) {
+				throw new MoleculerClientError(
+					`Block controller ${block.controller} not found`,
+					404, "BLOCK_CONTROLLER_NOT_FOUND", { controller: block.controller }
+				);
+			}
+
+			const command = [
+				"longhorn",
+				"info",
+			];
+
+			const result = await this.exec(ctx, block, command);
+
+			const json = JSON.parse(result.stdout);
+
+			return json;
+		},
+
+		/**
+		 * Expand a Longhorn block controller
+		 * 
+		 * @param {Object} ctx - Molculer context
+		 * @param {Object} block - Block object
+		 * @params {Object} options - Action options
+		 * 
+		 * @returns {Promise<Object>} - Updated block controller
+		 */
+		async expandBlockController(ctx, block, options = {}) {
+
+			if (!block.controller) {
+				throw new MoleculerClientError(
+					`Block controller ${block.controller} not found`,
+					404, "BLOCK_CONTROLLER_NOT_FOUND", { controller: block.controller }
+				);
+			}
+
+			const command = [
+				"longhorn",
+				"expand",
+				"--size",
+				`${block.size}gb`,
+			];
+
+			const result = await this.exec(ctx, block, command);
+
+			this.logger.info(`Expanded block controller ${block.controller} with result: ${JSON.stringify(result)}`);
+
+			return result;
+		},
+
+		/**
+		 * Delete a Longhorn block controller
+		 * 
+		 * @param {Object} ctx - Molculer context
+		 * @param {Object} block - Block object
+		 * @params {Object} options - Action options
+		 * 
+		 * @returns {Promise<Object>} - Updated block controller
+		 */
+		async deleteBlockController(ctx, block, options = {}) {
+
+			if (!block.controller) {
+				throw new MoleculerClientError(
+					`Block controller ${block.controller} not found`,
+					404, "BLOCK_CONTROLLER_NOT_FOUND", { controller: block.controller }
+				);
+			}
+
+			if (block.mounted) {
+				throw new MoleculerClientError(
+					`Block controller ${block.controller} is mounted`,
+					409, "BLOCK_CONTROLLER_MOUNTED", { controller: block.controller }
+				);
+			}
+
+			await ctx.call("v1.kubernetes.deleteNamespacedPod", {
+				cluster: block.cluster,
+				namespace: block.namespace,
+				name: block.name
+			});
+
+			const updated = await this.updateEntity(ctx, {
+				id: block.id,
+				controller: null,
+				online: false,
+			});
+
+			this.logger.info(`Deleted block controller ${block.controller}`);
+
+			return updated;
+		},
+
+		async updateFrontendState(ctx, block) {
+			const frontendInfo = await this.getBlockControllerInfo(ctx, block)
+				.catch(err => null);
+
+			if (!frontendInfo) {
+				this.logger.error(`Failed to get block controller info`);
+				return;
+			}
+
+			const frontendState = frontendInfo.frontendState == "up";
+
+			let updated = await this.updateEntity(ctx, {
+				id: block.id,
+				frontendState: frontendState,
+				device: frontendState ? frontendInfo.endpoint : null,
+				locality: block.replicas.find(r => r.healthy && r.node == block.node) ? "local" : "remote",
+				healthy: block.replicas.every(r => r.healthy),
+			});
+
+			this.logger.info(`Block ${block.id} frontend state: ${frontendInfo.frontendState}`);
+
+			if (block.frontendState !== updated.frontendState) {
+				await ctx.emit(`storage.blocks.frontendState${updated.frontendState ? "Up" : "Down"}`, updated);
+
+				if (updated.frontendState && !updated.mounted) {
+					if (!updated.formatted) {
+						updated = await this.formatBlock(ctx, updated);
+					}
+
+					await this.mountBlock(ctx, updated);
+				} else if (!updated.frontendState && updated.mounted) {
+					await this.unmountBlock(ctx, updated);
+				}
+			}
+
+			return updated;
+		},
+		/**
+		 * Create new replica object
+		 * 
+		 * @param {Context} ctx - Moleculer context object
+		 * @param {Object} block - Block object
+		 * @param {Object} disk - Disk object where the replica is created
+		 * 
+		 * @returns {Object} - Updated block object
+		 */
+		async createReplica(ctx, block, disk) {
+
+			const node = await ctx.call("v1.nodes.resolve", { id: disk.node });
+			if (!node) {
+				throw new MoleculerClientError(
+					`Node with id '${disk.node}' not found`,
+					404, "NOT_FOUND", { id: disk.node }
+				);
+			}
+
+			const folder = await ctx.call("v1.storage.folders.provision", {
+				prefix: "block-replica",
+				disk: disk.id
+			});
+
+			const name = `block-replica-${block.name}-${Moniker.choose()}`;
+
+			const config = {
+				id: uuid(),
+				pod: null,
+				name,
+				disk: disk.id,
+				node: node.id,
+				folder: folder.id,
+				healthy: false,
+				attached: false,
+				status: "pending",
+				ip: null,
+				endpoint: null,
+			};
+
+			const replica = await this.createReplicaPod(ctx, block, config, folder);
+
+			const updated = await this.updateEntity(ctx, {
+				id: block.id,
+				replicas: [...block.replicas, replica]
+			});
+
+			return updated;
+		},
+
+		/**
+		 * Create new replica pod
+		 * 
+		 * @param {Context} ctx - Moleculer context object
+		 * @param {Object} block - Block object
+		 * @param {Object} replica - Replica object
+		 * @param {Object} folder - Folder object
+		 * 
+		 * @returns {Object} - Updated block object
+		 */
+		async createReplicaPod(ctx, block, replica, folder) {
+
+
+			const node = await ctx.call("v1.nodes.resolve", { id: replica.node });
+
+			const volumeMounts = [{
+				name: 'node-mount',
+				mountPath: '/mnt',
+			}];
+			const ports = [];
+
+			const portCount = 15;
+			const startPort = 10000;
+
+			// create 15 ports
+			for (let i = 0; i < portCount; i++) {
+				ports.push({
+					name: `replica-${i}`,
+					containerPort: startPort + i,
+					protocol: 'TCP'
+				});
+			}
+
+			const command = [
+				`longhorn`,
+				`replica`,
+				`/mnt/`,
+				`--size`,
+				`${block.size}gb`,
+				`--replica-instance-name`,
+				replica.name,
+				`--listen`,
+				`0.0.0.0:${startPort}`,
+				`--data-server-protocol`,
+				`tcp`,
+				`--snapshot-max-count`,
+				`250`,
+				`--snapshot-max-size`,
+				`1gb`
+			];
+
+			// create a new replica pod
+			const pod = await ctx.call("v1.kubernetes.createNamespacedPod", {
+				cluster: block.cluster,
+				namespace: block.namespace,
+				body: {
+					apiVersion: "v1",
+					kind: "Pod",
+					metadata: {
+						name: replica.name,
+						labels: {
+							"moleculer": "true",
+							"longhorn.io": "true",
+							"longhorn-replica": "true",
+							"block-replica": "true",
+							"block": block.id,
+							"replica": replica.id,
+							"folder": folder.id
+						}
+					},
+					spec: {
+						nodeName: node.hostname,
+						restartPolicy: "Never",
+						containers: [{
+							name: "block-replica",
+							image: this.config.get("storage.blocks.engineImage"),
+							volumeMounts: volumeMounts,
+							ports: ports,
+							command: command,
+						}],
+						volumes: [{
+							name: "node-mount",
+							hostPath: {
+								path: folder.path
+							}
+						}]
+					}
+				},
+			});
+
+			if (!pod) {
+				// remove the folder
+				await ctx.call("v1.storage.folders.deprovision", { id: folder.id });
+				throw new MoleculerClientError(
+					`Error creating pod ${name}`,
+					500, "POD_CREATION_ERROR", { name }
+				);
+			}
+
+			replica.pod = pod.metadata.uid;
+
+			return replica;
+		},
+
+		async removeReplicaPod(ctx, block, replica) {
+			const updated = await this.removeReplicaFromFrontend(ctx, block, replica);
+
+			await ctx.call("v1.kubernetes.deleteNamespacedPod", {
+				cluster: block.cluster,
+				namespace: block.namespace,
+				name: replica.name
+			});
+
+			return updated;
+		},
+
+		/**
+		 * Remove a replica from a block
+		 * 
+		 * @param {Context} ctx - Moleculer context object
+		 * @param {Object} block - Block object
+		 * @param {Object} replica - Replica object
+		 * 
+		 * @returns {Promise<Object>} - Replica object
+		 */
+		async removeReplicaFromBlock(ctx, block, replica) {
+
+			let updated = await this.removeReplicaFromFrontend(ctx, block, replica)
+				.catch(() => {
+					this.logger.error(`Failed to remove replica ${replica.id} from block ${block.id}`);
+				});
+
+			await ctx.call("v1.kubernetes.deleteNamespacedPod", {
+				cluster: block.cluster,
+				namespace: block.namespace,
+				name: replica.name
+			}).catch(() => {
+				this.logger.error(`Failed to delete pod ${replica.name}`);
+			});
+
+			await ctx.call("v1.storage.folders.deprovision", { id: replica.folder })
+				.catch(() => {
+					this.logger.error(`Failed to deprovision folder ${replica.folder}`);
+				});
+
+			updated = await this.updateEntity(ctx, {
+				id: block.id,
+				replicas: updated.replicas.filter(r => r.id !== replica.id)
+			});
+
+			this.logger.info(`Removed replica ${replica.id} from block ${block.id}`);
+
+			return this.updateFrontendState(ctx, updated);
+		},
+
+		/**
+		 * Add a replica to a volume
+		 * 
+		 * @param {Context} ctx - Moleculer context object
+		 * @param {Object} block - Block object
+		 * @param {Object} replica - Replica object
+		 * @param {Object} options - Options object
+		 * 
+		 * @returns {Promise<Object>} - Replica object
+		 */
+		async addReplicaToFrontend(ctx, block, replica, options = {}) {
+			if (!replica.healthy) {
+				this.logger.info(`Block storage ${block.id} replica pod ${replica.id} is not healthy`);
+				return;
+			} else if (!block.online) {
+				this.logger.info(`Block storage ${block.id} is not online`);
+				return;
+			}
+
+			const cmd = [
+				"longhorn",
+				"add-replica",
+				"--replica-instance-name",
+				replica.name,
+				"--size",
+				`${block.size}gb`,
+				"--current-size",
+				`${block.size}gb`,
+			];
+
+			if (options.restore) {
+				cmd.push("--restore");
+			}
+
+			if (options.fastSync) {
+				cmd.push("--fast-sync");
+			}
+
+			if (options.fileSyncHttpClientTimeout) {
+				cmd.push("--file-sync-http-client-timeout", options.fileSyncHttpClientTimeout);
+			}
+
+			cmd.push(replica.endpoint);
+
+			const result = await this.exec(ctx, block, cmd);
+
+			if (result.stderr.includes("Error running add replica command")) {
+				throw new MoleculerClientError(
+					result.stderr,
+					500, "LONGHORN_ADD_REPLICA_ERROR", { command: cmd }
+				);
+			}
+
+			replica.attached = true;
+
+			const updated = this.updateEntity(ctx, {
+				id: block.id,
+				replicas: block.replicas
+			});
+
+			return this.updateFrontendState(ctx, updated);
+		},
+
+		/**
+		 * List replicas of a block
+		 * 
+		 * @param {Context} ctx - Moleculer context object
+		 * @param {Object} block - Block object
+		 * 
+		 * @returns {Promise<Object>} - Replica object
+		 */
+		async listReplicas(ctx, block) {
+
+			const cmd = [
+				"longhorn",
+				"ls-replica",
+			];
+
+			const result = await this.exec(ctx, block, cmd);
+
+			const lines = result.stdout.split("\n");
+			const replicas = lines.slice(1)
+				.filter(line => line.length > 0)
+				.map(line => {
+					const parts = line.split(" ").filter(p => p.length > 0);
+					// tcp://10.42.0.18:10000 RW   [volume-head-001.img volume-snap-16e36ddf-7924-4409-994e-982f714a1c26.img]
+					const endpoint = parts.shift();
+					const mode = parts.shift();
+
+					const replica = block.replicas.find(r => r.endpoint === endpoint);
+
+					const volumeRegex = /\[(.*)\]/;
+					const volumeMatch = line.match(volumeRegex);
+					let volumes = [];
+
+					if (volumeMatch) {
+						volumes = volumeMatch[1].split(" ");
+					}
+
+					return {
+						...replica,
+						endpoint,
+						mode,
+						volumes
+					};
+				});
+
+			return replicas;
+		},
+
+		/**
+		 * Remove a replica from a block
+		 * 
+		 * @param {Context} ctx - Moleculer context object
+		 * @param {Object} block - Block object
+		 * @param {Object} replica - Replica object
+		 * 
+		 * @returns {Promise<Object>} - Replica object
+		 */
+		async removeReplicaFromFrontend(ctx, block, replica) {
+
+			if (!replica.endpoint) {
+				throw new MoleculerClientError(
+					`Replica ${replica.id} has no endpoint`,
+					500, "NO_REPLICA_ENDPOINT", { id: block.id }
+				);
+			}
+
+			const cmd = [
+				"longhorn",
+				"rm-replica",
+				replica.endpoint,
+			];
+
+			const result = await this.exec(ctx, block, cmd);
+
+			if (result.stderr.includes(" cannot remove last replica if volume is up")) {
+				throw new MoleculerClientError(
+					`Cannot remove last replica if volume is up`,
+					500, "CANNOT_REMOVE_LAST_REPLICA", { id: block.id }
+				);
+			}
+
+			replica.attached = false;
+
+			const updated = this.updateEntity(ctx, {
+				id: block.id,
+				replicas: block.replicas
+			});
+
+			return this.updateFrontendState(ctx, updated);
+		},
+
+		/**
+		 * Update a replica of a block
+		 * 
+		 * @param {Context} ctx - Moleculer context object
+		 * @param {Object} block - Block object
+		 * @param {Object} replica - Replica object
+		 * @param {Object} options - Options object
+		 * 
+		 * @returns {Promise<Object>} - Replica object
+		 */
+		async updateReplica(ctx, block, replica, options = {}) {
+
+			const cmd = [
+				"longhorn",
+				"update-replica",
+				"--mode",
+				options.mode,
+				replica.endpoint,
+			];
+
+			const result = await this.exec(ctx, block, cmd);
+
+			return result;
+		},
+
+		/**
+		 * Get the rebuild status of a replica of a block
+		 * 
+		 * @param {Context} ctx - Moleculer context object
+		 * @param {Object} block - Block object
+		 * @param {Object} replica - Replica object
+		 * 
+		 * @returns {Promise<Object>} - Replica object
+		 */
+		async getRebuildStatus(ctx, block, replica) {
+
+			const cmd = [
+				"longhorn",
+				"replica-rebuild-status",
+				replica.endpoint,
+			];
+
+			const result = await this.exec(ctx, block, cmd);
+
+			return result;
+		},
+
+		/**
+		 * Verify the rebuild status of a replica of a block
+		 * 
+		 * @param {Context} ctx - Moleculer context object
+		 * @param {Object} block - Block object
+		 * @param {Object} replica - Replica object
+		 * @param {Object} options - Options object
+		 * 
+		 * @returns {Promise<Object>} - Replica object
+		 */
+		async verifyRebuild(ctx, block, replica, options = {}) {
+
+			const cmd = [
+				"longhorn",
+				"verify-rebuild-replica",
+				"--replica-instance-name",
+				replica.id,
+				replica.endpoint,
+			];
+
+			const result = await this.exec(ctx, block, cmd);
+
+			return result;
 		},
 	},
 
