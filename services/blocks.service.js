@@ -2687,7 +2687,7 @@ module.exports = {
 
 					const volumeRegex = /\[(.*)\]/;
 					const volumeMatch = line.match(volumeRegex);
-					console.log(volumeMatch, line)
+					
 					const volumes = volumeMatch[1].split(" ");
 
 					return {
@@ -3031,7 +3031,6 @@ module.exports = {
 		 * @returns {Promise<string>} - command output
 		 */
 		async exec(ctx, block, cmd) {
-			console.log(cmd)
 			// check if pod exists
 			if (!block.controller) {
 				throw new MoleculerClientError(

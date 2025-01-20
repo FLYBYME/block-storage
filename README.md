@@ -86,47 +86,324 @@ Manages block storage devices.
 #### Provisioning
 
 - `provision`: Provisions a new block storage device.
+  - **Params**:
+    - `name` (string): Name of the block.
+    - `size` (number): Size of the block in GB.
+    - `node` (string): Node to create the block.
+    - `replicas` (number): Number of replicas.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.provision", {
+      name: "my-block",
+      size: 10,
+      node: "node-1",
+      replicas: 3
+    });
+    ```
+
 - `deprovision`: Deprovisions an existing block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.deprovision", {
+      id: "block-id"
+    });
+    ```
 
 #### Formatting and Mounting
 
 - `format`: Formats a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+    - `force` (boolean, optional): Force format.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.format", {
+      id: "block-id",
+      force: true
+    });
+    ```
+
 - `mount`: Mounts a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+    - `force` (boolean, optional): Force mount.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.mount", {
+      id: "block-id",
+      force: true
+    });
+    ```
+
 - `unmount`: Unmounts a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+    - `force` (boolean, optional): Force unmount.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.unmount", {
+      id: "block-id",
+      force: true
+    });
+    ```
 
 #### Usage and Maintenance
 
 - `usage`: Retrieves the usage of a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+  - **Example**:
+    ```javascript
+    const usage = await broker.call("storage.blocks.usage", {
+      id: "block-id"
+    });
+    console.log(usage);
+    ```
+
 - `trim`: Trims a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.trim", {
+      id: "block-id"
+    });
+    ```
+
 - `checkPods`: Checks the state of the pods associated with a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.checkPods", {
+      id: "block-id"
+    });
+    ```
+
 - `balanceBlock`: Balances the number of replicas of a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.balanceBlock", {
+      id: "block-id"
+    });
+    ```
 
 #### Replica Management
 
 - `createReplica`: Creates a new replica for a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+    - `disk` (string): Disk ID.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.createReplica", {
+      id: "block-id",
+      disk: "disk-id"
+    });
+    ```
+
 - `removeReplicaFromBlock`: Removes a replica from a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+    - `replica` (string): Replica ID.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.removeReplicaFromBlock", {
+      id: "block-id",
+      replica: "replica-id"
+    });
+    ```
+
 - `removeReplicaFromFrontend`: Removes a replica from a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+    - `replica` (string): Replica ID.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.removeReplicaFromFrontend", {
+      id: "block-id",
+      replica: "replica-id"
+    });
+    ```
+
 - `removeReplicaPod`: Removes a replica pod from a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+    - `replica` (string): Replica ID.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.removeReplicaPod", {
+      id: "block-id",
+      replica: "replica-id"
+    });
+    ```
+
 - `addReplicaToFrontend`: Adds a replica to a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+    - `replica` (string): Replica ID.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.addReplicaToFrontend", {
+      id: "block-id",
+      replica: "replica-id"
+    });
+    ```
+
 - `listReplicas`: Lists replicas of a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+  - **Example**:
+    ```javascript
+    const replicas = await broker.call("storage.blocks.listReplicas", {
+      id: "block-id"
+    });
+    console.log(replicas);
+    ```
+
 - `updateReplica`: Updates a replica of a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+    - `replica` (string): Replica ID.
+    - `mode` (string): Replica mode.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.updateReplica", {
+      id: "block-id",
+      replica: "replica-id",
+      mode: "RW"
+    });
+    ```
+
 - `getRebuildStatus`: Gets the rebuild status of a replica of a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+    - `replica` (string): Replica ID.
+  - **Example**:
+    ```javascript
+    const status = await broker.call("storage.blocks.getRebuildStatus", {
+      id: "block-id",
+      replica: "replica-id"
+    });
+    console.log(status);
+    ```
+
 - `verifyRebuild`: Verifies the rebuild status of a replica of a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+    - `replica` (string): Replica ID.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.verifyRebuild", {
+      id: "block-id",
+      replica: "replica-id"
+    });
+    ```
+
 - `updateReplicaMode`: Updates the mode of a replica of a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+    - `mode` (string): Replica mode.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.updateReplicaMode", {
+      id: "block-id",
+      mode: "RW"
+    });
+    ```
 
 #### Information and Control
 
 - `ls`: Lists the contents of a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+  - **Example**:
+    ```javascript
+    const contents = await broker.call("storage.blocks.ls", {
+      id: "block-id"
+    });
+    console.log(contents);
+    ```
+
 - `info`: Retrieves information about a block storage device.
+  - **Params**:
+    - `id` (string): ID of the block.
+  - **Example**:
+    ```javascript
+    const info = await broker.call("storage.blocks.info", {
+      id: "block-id"
+    });
+    console.log(info);
+    ```
 
 #### Longhorn Block Controller
 
 - `createBlockController`: Creates a Longhorn block controller.
+  - **Params**:
+    - `id` (string): ID of the block.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.createBlockController", {
+      id: "block-id"
+    });
+    ```
+
 - `startBlockFrontend`: Starts a Longhorn block controller.
+  - **Params**:
+    - `id` (string): ID of the block.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.startBlockFrontend", {
+      id: "block-id"
+    });
+    ```
+
 - `shutdownBlockFrontend`: Shuts down a Longhorn block controller.
+  - **Params**:
+    - `id` (string): ID of the block.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.shutdownBlockFrontend", {
+      id: "block-id"
+    });
+    ```
+
 - `getBlockControllerInfo`: Retrieves information about a Longhorn block controller.
+  - **Params**:
+    - `id` (string): ID of the block.
+  - **Example**:
+    ```javascript
+    const info = await broker.call("storage.blocks.getBlockControllerInfo", {
+      id: "block-id"
+    });
+    console.log(info);
+    ```
+
 - `expandBlockController`: Expands a Longhorn block controller.
+  - **Params**:
+    - `id` (string): ID of the block.
+    - `size` (number): New block size.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.expandBlockController", {
+      id: "block-id",
+      size: 20
+    });
+    ```
+
 - `deleteBlockController`: Deletes a Longhorn block controller.
+  - **Params**:
+    - `id` (string): ID of the block.
+  - **Example**:
+    ```javascript
+    await broker.call("storage.blocks.deleteBlockController", {
+      id: "block-id"
+    });
+    ```
 
 ## Configuration
 
