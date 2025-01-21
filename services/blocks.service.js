@@ -580,6 +580,14 @@ module.exports = {
 			}
 		},
 
+		/**
+		 * Check block storage device pods
+		 * 
+		 * @actions
+		 * @param {String} id - id of the block
+		 * 
+		 * @returns {Object} - returns the block object
+		 */
 		checkPods: {
 			rest: {
 				method: "GET",
@@ -606,6 +614,14 @@ module.exports = {
 			}
 		},
 
+		/**
+		 * Balance block storage device
+		 * 
+		 * @actions
+		 * @param {String} id - id of the block
+		 * 
+		 * @returns {Object} - returns the block object
+		 */
 		balanceBlock: {
 			rest: {
 				method: "POST",
@@ -744,6 +760,15 @@ module.exports = {
 			}
 		},
 
+		/**
+		 * Update replica mode
+		 * 
+		 * @actions
+		 * @param {String} id - block storage id
+		 * @param {String} mode - replica mode
+		 * 
+		 * @returns {Object} - updated block storage object
+		 */
 		updateReplicaMode: {
 			rest: {
 				method: "POST",
@@ -1231,62 +1256,6 @@ module.exports = {
 				}
 
 				return this.removeReplicaFromFrontend(ctx, block, replica);
-			}
-		},
-
-		/**
-		 * Update a replica of a block
-		 * 
-		 * @actions
-		 * @param {String} id - block storage id
-		 * @param {String} replica - replica id
-		 * @param {String} mode - replica mode
-		 * 
-		 * @returns {Object} - result from the command
-		 */
-		updateReplica: {
-			rest: {
-				method: "POST",
-				path: "/:id/replicas/:replica/update"
-			},
-			params: {
-				id: {
-					type: "string",
-					empty: false,
-					optional: false
-				},
-				replica: {
-					type: "string",
-					empty: false,
-					optional: false
-				},
-				mode: {
-					type: "string",
-					empty: false,
-					enum: ["RO", "RW", "ERR"],
-					optional: false
-				}
-			},
-			async handler(ctx) {
-				const block = await this.findById(ctx, ctx.params.id);
-				if (!block) {
-					throw new MoleculerClientError(
-						`Block storage with id '${ctx.params.id}' not found`,
-						404, "NOT_FOUND", { id: ctx.params.id }
-					);
-				}
-
-				const replica = block.replicas.find(r => r.id === ctx.params.replica);
-				if (!replica) {
-					throw new MoleculerClientError(
-						`Block storage ${block.id} replica ${ctx.params.replica} not found`,
-						404, "NOT_FOUND", { id: ctx.params.replica }
-					);
-				}
-
-				return this.updateReplica(ctx, block, replica, {
-					mode: ctx.params.mode
-				});
 			}
 		},
 
