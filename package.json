@@ -26,12 +26,9 @@
   },
   "dependencies": {
     "@moleculer/database": "^0.2.1",
-    "canvas": "^2.11.2",
-    "fft-js": "^0.0.12",
     "moleculer": "^0.14.26",
     "moniker": "^0.1.2",
     "nedb": "^1.8.0",
-    "rtlsdrjs": "^0.0.0",
     "uuid": "^11.0.5"
   },
   "engines": {

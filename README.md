@@ -370,7 +370,7 @@ Manages block storage devices.
     });
     ```
 
-- `removeReplicaFromBlock`: Removes a replica from a block storage device.
+- `removeReplicaFromBlock`: Removes a replica from a block storage device. This action removed the underlying data and the pod.
   - **Params**:
     - `id` (string): ID of the block.
     - `replica` (string): Replica ID.
@@ -382,7 +382,7 @@ Manages block storage devices.
     });
     ```
 
-- `removeReplicaFromFrontend`: Removes a replica from a block storage device.
+- `removeReplicaFromFrontend`: Removes a replica from the frontend controller.
   - **Params**:
     - `id` (string): ID of the block.
     - `replica` (string): Replica ID.
@@ -394,7 +394,7 @@ Manages block storage devices.
     });
     ```
 
-- `removeReplicaPod`: Removes a replica pod from a block storage device.
+- `removeReplicaPod`: Removes a replica pod from a block storage device. Deletes the pod and updates the block entity to remove the pod information.
   - **Params**:
     - `id` (string): ID of the block.
     - `replica` (string): Replica ID.
@@ -406,7 +406,7 @@ Manages block storage devices.
     });
     ```
 
-- `addReplicaToFrontend`: Adds a replica to a block storage device.
+- `addReplicaToFrontend`: Adds a replica to a block storage device. Attaches the replica to the frontend controller.
   - **Params**:
     - `id` (string): ID of the block.
     - `replica` (string): Replica ID.
