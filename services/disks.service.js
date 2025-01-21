@@ -140,6 +140,209 @@ module.exports = {
 	},
 
 	actions: {
+
+		/**
+		 * Format a disk
+		 * 
+		 * @actions
+		 * @param {String} id - id of the disk
+		 * 
+		 * @returns {Object} storage device
+		 */
+		format: {
+			rest: {
+				method: "POST",
+				path: "/:id/format",
+			},
+			params: {
+				id: { type: "string", empty: false, required: true },
+				force: { type: "boolean", empty: false, required: false, default: false },
+			},
+			async handler(ctx) {
+				const disk = await this.resolveStorageDevice(ctx, ctx.params.id);
+				if (!disk) {
+					throw new MoleculerClientError(
+						`Disk ${ctx.params.id} not found`,
+						404, "DISK_NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				if (disk.mounted) {
+					throw new MoleculerClientError(
+						`Disk ${ctx.params.id} is mounted`,
+						409, "DISK_MOUNTED", { id: ctx.params.id }
+					);
+				}
+
+				if (disk.formatted && !ctx.params.force) {
+					throw new MoleculerClientError(
+						`Disk ${ctx.params.id} is already formatted`,
+						409, "DISK_ALREADY_FORMATTED", { id: ctx.params.id }
+					);
+				}
+
+				if (disk.mountpoint) {
+					throw new MoleculerClientError(
+						`Disk ${ctx.params.id} is mounted`,
+						409, "DISK_MOUNTED", { id: ctx.params.id }
+					);
+				}
+
+				const fsType = this.config.get("storage.disks.fsType");
+
+				const command = [
+					"sudo",
+					"mkfs",
+					"-t",
+					fsType,
+					"/dev/" + disk.name
+				];
+				await ctx.call("v1.terminal.exec", {
+					node: disk.node,
+					command: command.join(" "),
+				}).then(res => console.log(res));
+
+				return this.updateEntity(ctx, {
+					id: ctx.params.id,
+					formatted: true,
+				});
+			}
+		},
+
+		/**
+		 * Mount a disk
+		 * 
+		 * @actions
+		 * @param {String} id - id of the disk
+		 * 
+		 * @returns {Object} storage device
+		 */
+		mount: {
+			rest: {
+				method: "POST",
+				path: "/:id/mount",
+			},
+			params: {
+				id: { type: "string", empty: false, required: true },
+			},
+			async handler(ctx) {
+				const disk = await this.resolveStorageDevice(ctx, ctx.params.id);
+				if (!disk) {
+					throw new MoleculerClientError(
+						`Disk ${ctx.params.id} not found`,
+						404, "DISK_NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				if (disk.mounted) {
+					throw new MoleculerClientError(
+						`Disk ${ctx.params.id} is already mounted`,
+						409, "DISK_ALREADY_MOUNTED", { id: ctx.params.id }
+					);
+				}
+
+				if (!disk.formatted) {
+					throw new MoleculerClientError(
+						`Disk ${ctx.params.id} is not formatted`,
+						409, "DISK_NOT_FORMATTED", { id: ctx.params.id }
+					);
+				}
+
+				const mountpoint = `/mnt/${ctx.params.id}`;
+				await ctx.call("v1.terminal.exec", {
+					node: disk.node,
+					command: [
+						"sudo",
+						"mkdir",
+						"-p",
+						mountpoint
+					].join(" "),
+				}).then(res => console.log(res));
+
+				await ctx.call("v1.terminal.exec", {
+					node: disk.node,
+					command: [
+						"sudo",
+						"mount",
+						"/dev/" + disk.name,
+						mountpoint
+					].join(" "),
+				}).then(res => console.log(res));
+
+				return this.updateEntity(ctx, {
+					id: ctx.params.id,
+					mounted: true,
+					mountpoint,
+				});
+			}
+		},
+
+		/**
+		 * Unmount a disk
+		 * 
+		 * @actions
+		 * @param {String} id - id of the disk
+		 * 
+		 * @returns {Object} storage device
+		 */
+		unmount: {
+			rest: {
+				method: "POST",
+				path: "/:id/unmount",
+			},
+			params: {
+				id: { type: "string", empty: false, required: true },
+			},
+			async handler(ctx) {
+				const disk = await this.resolveStorageDevice(ctx, ctx.params.id);
+				if (!disk) {
+					throw new MoleculerClientError(
+						`Disk ${ctx.params.id} not found`,
+						404, "DISK_NOT_FOUND", { id: ctx.params.id }
+					);
+				}
+
+				if (!disk.mounted) {
+					throw new MoleculerClientError(
+						`Disk ${ctx.params.id} is not mounted`,
+						409, "DISK_NOT_MOUNTED", { id: ctx.params.id }
+					);
+				}
+
+				if (!disk.formatted) {
+					throw new MoleculerClientError(
+						`Disk ${ctx.params.id} is not formatted`,
+						409, "DISK_NOT_FORMATTED", { id: ctx.params.id }
+					);
+				}
+
+				await ctx.call("v1.terminal.exec", {
+					node: disk.node,
+					command: [
+						"sudo",
+						"umount",
+						"/dev/" + disk.name
+					].join(" "),
+				}).then(res => console.log(res));
+
+				await ctx.call("v1.terminal.exec", {
+					node: disk.node,
+					command: [
+						"sudo",
+						"rm",
+						"-rf",
+						"/mnt/" + ctx.params.id
+					].join(" "),
+				}).then(res => console.log(res));
+
+				return this.updateEntity(ctx, {
+					id: ctx.params.id,
+					mounted: false,
+					mountpoint: null,
+				});
+			}
+		},
+
 		/**
 		 * Get available disks
 		 * 
