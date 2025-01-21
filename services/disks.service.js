@@ -277,8 +277,11 @@ module.exports = {
 
 				for (const node of nodes) {
 					const res = await this.actions.probe({ node: node.id }, { parentCtx: ctx })
-						.catch(err => console.log(err))
-					result.push(...res);
+						.catch(err => {
+							console.log(err);
+							return err
+						})
+					result.push(res);
 				}
 
 				return result;
