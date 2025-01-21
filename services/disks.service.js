@@ -220,7 +220,7 @@ module.exports = {
 					};
 
 					// If serial is not empty, add it to the query
-					if (!disk.serial || disk.serial !== "") {
+					if (disk.serial) {
 						query.serial = disk.serial
 					}
 
@@ -516,7 +516,21 @@ module.exports = {
 				}
 				return this.findEntities(ctx, { query: { node: node.id } });
 			}
-		}
+		},
+
+		clearDB: {
+			rest: {
+				method: "DELETE",
+				path: "/clear",
+			},
+			async handler(ctx) {
+				const disks = await this.findEntities(ctx, {});
+
+				return Promise.all(disks.map(disk => {
+					return this.removeEntity(ctx, { id: disk.id });
+				}));
+			}
+		},
 	},
 
 	events: {
