@@ -297,6 +297,8 @@ module.exports = {
 				});
 
 				this.logger.info(`NFS pod ${pod.id} updated with IP ${pod.status.podIP}`);
+			} else {
+				console.log(nfs, pod)
 			}
 		}
 	},
