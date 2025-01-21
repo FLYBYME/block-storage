@@ -587,6 +587,29 @@ module.exports = {
 			}
 		},
 
+		clearNFS: {
+			rest: {
+				method: "DELETE",
+				path: "/:id/nfs",
+			},
+			params: {
+				id: { type: "string", empty: false, optional: false },
+			},
+			async handler(ctx) {
+				const disk = await this.resolveStorageDevice(ctx, ctx.params.id);
+				if (!disk) {
+					throw new MoleculerClientError(
+						`Disk ${ctx.params.id} not found`,
+						404, "DISK_NOT_FOUND", { disk: ctx.params.id }
+					);
+				}
+				return this.updateEntity(ctx, {
+					id: disk.id,
+					nfs: null
+				});
+			}
+		},
+
 		createFolder: {
 			rest: {
 				method: "POST",
