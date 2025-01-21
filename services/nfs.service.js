@@ -280,9 +280,20 @@ module.exports = {
 	events: {
 		async "kubernetes.pods.deleted"(ctx) {
 			const pod = ctx.params;
+			const nfs = await this.resolveNFSPod(pod.ctx, pod.metadata.uid);
+			if (!nfs) {
+				return;
+			}
+
+			console.log(nfs, pod)
 		},
 		async "kubernetes.pods.added"(ctx) {
 			const pod = ctx.params;
+			const nfs = await this.resolveNFSPod(pod.ctx, pod.metadata.uid);
+			if (!nfs) {
+				return;
+			}
+			console.log(nfs, pod)
 		},
 		async "kubernetes.pods.modified"(ctx) {
 			const pod = ctx.params;
