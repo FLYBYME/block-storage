@@ -2105,6 +2105,15 @@ module.exports = {
 				this.logger.info(`Balanced block ${block.id} up to ${desiredReplicas} replicas`);
 			} else if (replicas.length > desiredReplicas) {
 				// TODO: first remove replicas that share the same disk. then remove most constrained node
+
+				// Loop until the desired number of replicas is reached
+				for (let i = replicas.length - 1; i >= desiredReplicas; i--) {
+					// Remove the replica from the block
+					updatedBlock = await this.removeReplicaFromBlock(ctx, updatedBlock, replicas[i]);
+				}
+
+				// Log the final result
+				this.logger.info(`Balanced block ${block.id} down to ${desiredReplicas} replicas`);
 			} else {
 				// Log the result if no change
 				this.logger.info(`Balanced block ${block.id} no change to ${desiredReplicas} from ${replicas.length} replicas`);
