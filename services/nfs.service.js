@@ -285,7 +285,14 @@ module.exports = {
 				return;
 			}
 
-			console.log(nfs, pod)
+			// update nfs server
+			await this.updateEntity(pod.ctx, {
+				id: nfs.id,
+				ip: null,
+				pod: null
+			});
+
+			this.logger.info(`NFS pod ${pod.metadata.name} deleted`);
 		},
 		async "kubernetes.pods.added"(ctx) {
 			const pod = ctx.params;
@@ -293,7 +300,6 @@ module.exports = {
 			if (!nfs) {
 				return;
 			}
-			console.log(nfs, pod)
 		},
 		async "kubernetes.pods.modified"(ctx) {
 			const pod = ctx.params;
@@ -304,12 +310,13 @@ module.exports = {
 			if (pod.status.phase == "Running" && !nfs.ip) {
 				await this.updateEntity(pod.ctx, {
 					id: nfs.id,
-					ip: pod.status.podIP
+					ip: pod.status.podIP,
+					pod: pod.metadata.uid
 				});
 
-				this.logger.info(`NFS pod ${pod.id} updated with IP ${pod.status.podIP}`);
+				this.logger.info(`NFS pod ${pod.metadata.name} updated with IP ${pod.status.podIP}`);
 			} else {
-				console.log(nfs, pod)
+				this.logger.info(`NFS pod ${pod.metadata.name} ignored`);
 			}
 		}
 	},
