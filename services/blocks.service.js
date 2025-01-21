@@ -4,6 +4,7 @@ const { MoleculerClientError } = require("moleculer").Errors;
 const Context = require("moleculer").Context;
 const Lock = require('../lib/lock')
 const Moniker = require("moniker");
+const { v4: uuid } = require('uuid');
 
 const ConfigMixin = require("../mixins/config.mixin");
 
