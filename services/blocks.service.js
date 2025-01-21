@@ -2104,10 +2104,12 @@ module.exports = {
 				// Log the final result
 				this.logger.info(`Balanced block ${block.id} up to ${desiredReplicas} replicas`);
 			} else if (replicas.length > desiredReplicas) {
-				// TODO: first remove replicas that share the same disk. then remove most constrained node
-
 				// Loop until the desired number of replicas is reached
 				for (let i = replicas.length - 1; i >= desiredReplicas; i--) {
+					if (replicas[i].node == block.node) {
+						// Skip replicas on the same node
+						continue;
+					}
 					// Remove the replica from the block
 					updatedBlock = await this.removeReplicaFromBlock(ctx, updatedBlock, replicas[i]);
 				}
@@ -2115,12 +2117,33 @@ module.exports = {
 				// Log the final result
 				this.logger.info(`Balanced block ${block.id} down to ${desiredReplicas} replicas`);
 			} else {
-				// Log the result if no change
-				this.logger.info(`Balanced block ${block.id} no change to ${desiredReplicas} from ${replicas.length} replicas`);
+
+				// If block has locality, then move replicas to the same node
+				if (block.locality == "remote") {
+					// TODO: move replicas to the same node
+					const disks = await ctx.call("v1.storage.disks.getNodeDisks", {
+						node: block.node
+					});
+
+					if (!disks || disks.length === 0) {
+						this.logger.warn(`Node ${block.node} has no storage`);
+					} else {
+						// Create replicas on the same disk
+						updatedBlock = await this.createReplica(ctx, updated, disk);
+
+						// Log the result
+						this.logger.info(`Balanced block ${block.id} to ${desiredReplicas} replicas on node ${block.node}`);
+					}
+				} else {
+					// Log the result
+					this.logger.info(`Balanced block ${block.id} no change to ${desiredReplicas} from ${replicas.length} replicas`);
+				}
 			}
 
 			// Update the frontend state if necessary
 			await this.updateFrontendState(ctx, updatedBlock);
+
+			return updatedBlock;
 		},
 
 		/**
