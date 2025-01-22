@@ -402,7 +402,12 @@ module.exports = {
 
 			const metadata = {
 				name: nfs.name,
-				namespace: nfs.namespace
+				namespace: nfs.namespace,
+				labels: {
+					app: 'nfs-server',
+					nfs: nfs.id,
+					disk: nfs.disk
+				}
 			};
 
 			const containers = [{
@@ -448,8 +453,6 @@ module.exports = {
 				}
 			}];
 
-			// node nodeName 
-
 			const pod = await ctx.call("v1.kubernetes.createNamespacedPod", {
 				cluster: nfs.cluster,
 				namespace: nfs.namespace,
@@ -469,7 +472,6 @@ module.exports = {
 			const updated = await this.updateEntity(ctx, {
 				id: nfs.id,
 				pod: pod.metadata.uid,
-				ip: pod.status.podIP
 			})
 
 			this.logger.info(`NFS pod ${updated.id} created`);
