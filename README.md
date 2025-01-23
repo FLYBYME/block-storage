@@ -21,6 +21,20 @@ These services require the following services to be running:
 - [Config-service](https://github.com/FLYBYME/config-service)
 - [Nodes-service](https://github.com/FLYBYME/nodes-service)
 
+## Installation
+
+To run the services, install Docker and run the following command:
+```bash
+docker run -d --name block-storage --restart always -v /path/to/data:/app/db ghcr.io/flybyme/block-storage:main
+```
+For Nats as the transporter
+
+```bash
+docker run -d --name block-storage --restart always -e TRANSPORTER=nats://10.1.10.1:4222 -v /path/to/data:/app/db ghcr.io/flybyme/block-storage:main
+```
+
+Replace `/path/to/data` with the path to your data directory.
+
 
 ## Index
 
