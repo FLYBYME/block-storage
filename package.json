@@ -28,6 +28,7 @@
     "@moleculer/database": "^0.2.1",
     "moleculer": "^0.14.26",
     "moniker": "^0.1.2",
+    "nats": "^2.29.1",
     "nedb": "^1.8.0",
     "uuid": "^11.0.5"
   },
